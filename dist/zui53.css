@@ -1,0 +1,42 @@
+html {
+  width: 100%;
+  height: 100%; }
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%; }
+
+button {
+  position: absolute;
+  border: 1px solid red;
+  margin: 0;
+  padding: 10px; }
+
+#viewport {
+  position: relative;
+  /*  border: 1px solid black;*/
+  overflow: hidden;
+  width: 100%;
+  height: 100%; }
+  #viewport .surface {
+    -webkit-transform-origin: 0 0;
+    position: absolute;
+    /*    -webkit-transform: translate(-20px, 20px);*/ }
+
+space {
+  position: absolute;
+  /*  display: inline-block;*/
+  border: 2px solid red;
+  margin: 0;
+  padding: 10px; }
+
+card {
+  position: absolute;
+  display: inline-block;
+  margin: 0;
+  width: 50px;
+  height: 50px;
+  background-color: green; }
