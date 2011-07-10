@@ -6,14 +6,15 @@ class PanController
   
   attach: ()=>
     console.log 'attaching pan'
-    window.addEventListener 'mousedown', @start, false
+    # window.addEventListener 'mousedown', @start, false
+    $(window).mousedown @start
     
   start: (e)=>
-    # console.log e.target, @vp
+    # console.log e, @vpHtml
     if e.target == @vpHtml
       @startX = e.layerX
       @startY = e.layerY
-      console.log 'start panning'
+      # console.log 'start panning'
       window.addEventListener 'mousemove', @pan, true
       window.addEventListener 'mouseup', @stop, true
     
@@ -23,13 +24,13 @@ class PanController
     window.removeEventListener 'mouseup', @stop, true
     
   pan: (e)=>
+    # console.log e
     dX = e.layerX - @startX 
     dY = e.layerY - @startY 
-    
+    # console.log "pan: #{dX}, #{dY}"
     @startX = e.layerX
     @startY = e.layerY
     
-    # console.log "pan: #{dX}, #{dY}"
     @vp.panBy(dX, dY)
 
 class ZoomController
@@ -40,23 +41,26 @@ class ZoomController
     $(window).mousewheel @zoom
     
   zoom: (e)=>
-    # console.log e.wheelDelta
+    # console.log e
+    delta = e.wheelDelta || (e.detail * -1)
     f = 0.05
-    if e.wheelDelta < 0
+    if delta < 0
       f *= -1
       
     @vp.doZoom(f, e.clientX, e.clientY)
     
 
-class Viewport
-  constructor: ()->
+class window.Viewport
+  constructor: (vp, group)->
+    console.log "Viewport: ", vp, group
+    
     @zoomPos = 0.0
     @scale = 1.0
     # @pX = 0
     # @pY = 0
     
-    @viewport = $('#viewport')[0]
-    @surface = $('#viewport .surface')[0]
+    @viewport = vp #$('#viewport')[0]
+    @surface = group #$('#viewport .surface')[0]
     
     @vpOffset = $(@viewport).offset()
     
@@ -75,8 +79,8 @@ class Viewport
     console.log "OFFSET", @vpOffM
     
     console.log "init pan", @surface
-    @pan = new PanController(@, @viewport)
-    @pan.attach()
+    # @pan = new PanController(@, @viewport)
+    # @pan.attach()
     
     @zoom = new ZoomController(@)
     @zoom.attach()
@@ -99,10 +103,18 @@ class Viewport
   updateSurface: ()=>
     pX = @surfaceM.e(1, 3)
     pY = @surfaceM.e(2, 3)
-    scale = @surfaceM.e(1, 1)
+    @scale = @surfaceM.e(1, 1)
     
-    matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{pX}, #{pY})"
-    $(@surface).css("-webkit-transform", matrix)
+    
+    # matrix = "matrix(#{@scale}, 0.0, 0.0, #{@scale}, #{pX}, #{pY})"
+    # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
+    # console.log single
+    # $(@surface).css("-webkit-transform", matrix)
+    # $(@surface).css("-moz-transform", single)
+    # $(@surface).css("transform", matrix)
+    
+    singleSVG = "translate(#{pX}, #{pY}) scale(#{@scale}, #{@scale})"
+    $(@surface).attr("transform", singleSVG)
   
   panBy: (x, y)=>
     @translateSurface(x, y)
@@ -150,5 +162,5 @@ class Viewport
     
 
 jQuery ()->
-  console.log "Ready"
-  window.zui53 = new Viewport()
+  # console.log "Ready"
+  # window.zui53 = new Viewport()

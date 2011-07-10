@@ -1,5 +1,5 @@
 (function() {
-  var PanController, Viewport, ZoomController;
+  var PanController, ZoomController;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   PanController = (function() {
     function PanController(viewport, html) {
@@ -11,13 +11,12 @@
     }
     PanController.prototype.attach = function() {
       console.log('attaching pan');
-      return window.addEventListener('mousedown', this.start, false);
+      return $(window).mousedown(this.start);
     };
     PanController.prototype.start = function(e) {
       if (e.target === this.vpHtml) {
         this.startX = e.layerX;
         this.startY = e.layerY;
-        console.log('start panning');
         window.addEventListener('mousemove', this.pan, true);
         return window.addEventListener('mouseup', this.stop, true);
       }
@@ -46,33 +45,33 @@
       return $(window).mousewheel(this.zoom);
     };
     ZoomController.prototype.zoom = function(e) {
-      var f;
+      var delta, f;
+      delta = e.wheelDelta || (e.detail * -1);
       f = 0.05;
-      if (e.wheelDelta < 0) {
+      if (delta < 0) {
         f *= -1;
       }
       return this.vp.doZoom(f, e.clientX, e.clientY);
     };
     return ZoomController;
   })();
-  Viewport = (function() {
-    function Viewport() {
+  window.Viewport = (function() {
+    function Viewport(vp, group) {
       this.translateSurface = __bind(this.translateSurface, this);
       this.doZoom = __bind(this.doZoom, this);
       this.panBy = __bind(this.panBy, this);
       this.updateSurface = __bind(this.updateSurface, this);
       this.surfaceToClient = __bind(this.surfaceToClient, this);
-      this.clientToSurface = __bind(this.clientToSurface, this);      this.zoomPos = 0.0;
+      this.clientToSurface = __bind(this.clientToSurface, this);      console.log("Viewport: ", vp, group);
+      this.zoomPos = 0.0;
       this.scale = 1.0;
-      this.viewport = $('#viewport')[0];
-      this.surface = $('#viewport .surface')[0];
+      this.viewport = vp;
+      this.surface = group;
       this.vpOffset = $(this.viewport).offset();
       this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
       this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
       console.log("OFFSET", this.vpOffM);
       console.log("init pan", this.surface);
-      this.pan = new PanController(this, this.viewport);
-      this.pan.attach();
       this.zoom = new ZoomController(this);
       this.zoom.attach();
     }
@@ -85,12 +84,12 @@
       return this.vpOffM.multiply(this.surfaceM.multiply(v));
     };
     Viewport.prototype.updateSurface = function() {
-      var matrix, pX, pY, scale;
+      var pX, pY, singleSVG;
       pX = this.surfaceM.e(1, 3);
       pY = this.surfaceM.e(2, 3);
-      scale = this.surfaceM.e(1, 1);
-      matrix = "matrix(" + scale + ", 0.0, 0.0, " + scale + ", " + pX + ", " + pY + ")";
-      return $(this.surface).css("-webkit-transform", matrix);
+      this.scale = this.surfaceM.e(1, 1);
+      singleSVG = "translate(" + pX + ", " + pY + ") scale(" + this.scale + ", " + this.scale + ")";
+      return $(this.surface).attr("transform", singleSVG);
     };
     Viewport.prototype.panBy = function(x, y) {
       this.translateSurface(x, y);
@@ -117,8 +116,5 @@
     };
     return Viewport;
   })();
-  jQuery(function() {
-    console.log("Ready");
-    return window.zui53 = new Viewport();
-  });
+  jQuery(function() {});
 }).call(this);
