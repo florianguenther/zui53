@@ -1,26 +1,29 @@
 
 class window.Painting
-  constructor: (zui, paper)->
+  constructor: (zui, paper, @color = "#000000")->
     @zui = zui
     @paper = paper
     
-    @color = "#000000"
+    # @color = "#000000"
     
-    @enable()
+    # @enable()
     
-    $(@zui).bind 'pan.start', @disable
-    $(@zui).bind 'pan.stop', @enable
+    # $(@zui).bind 'pan.start', @disable
+    # $(@zui).bind 'pan.stop', @enable
+    
+    @use_capture = true
     
   enable: ()=>
     $(@zui.viewport).bind 'mousedown', @start
     # window.addEventListener 'mousedown', @start, true
+    @zui.viewport.addEventListener 'touchstart', @touch_start, @use_capture
     
   disable: ()=>
     $(@zui.viewport).unbind 'mousedown', @start
+    @zui.viewport.removeEventListener 'touchstart', @touch_start, @use_capture
     
-  start: (e)=>
-    console.log "START Painting"
-    point = @zui.clientToSurface(e.clientX, e.clientY)
+  _internal_start: (x, y)=>
+    point = @zui.clientToSurface(x, y)
     
     @array = []
     @array[0] = ["M", point.e(1), point.e(2)];
@@ -32,19 +35,54 @@ class window.Painting
       "stroke-linecap": "round"
     });
     
-    $(@zui.viewport).bind 'mousemove', @move
-    $(@zui.viewport).bind 'mouseup', @stop
-    
-  move: (e)=>
-    point = @zui.clientToSurface(e.clientX, e.clientY)
+  _internal_move: (x, y)=>
+    point = @zui.clientToSurface(x, y)
     
     @array.push ["L", point.e(1), point.e(2)];
 
     @item.attr({path: @array});
     
+  start: (e)=>
+    # console.log "START Painting"
+    @_internal_start(e.clientX, e.clientY)
+    
+    $(@zui.viewport).bind 'mousemove', @move
+    $(@zui.viewport).bind 'mouseup', @stop
+    
+  move: (e)=>
+    @_internal_move(e.clientX, e.clientY)
+    
   stop: (e)=>
     $(@zui.viewport).unbind 'mousemove', @move
     $(@zui.viewport).unbind 'mouseup', @stop
+    
+  touch_start: (e)=>
+    if e.targetTouches.length > 1
+      return
+      
+    e.preventDefault()
+    t = e.targetTouches[0]
+    
+    @_internal_start(t.clientX, t.clientY)
+    
+    @zui.viewport.addEventListener 'touchmove', @touch_move, @use_capture
+    @zui.viewport.addEventListener 'touchend', @touch_stop, @use_capture
+    @zui.viewport.addEventListener 'gesturestart', @touch_stop, @use_capture
+    
+  touch_move: (e)=>
+    console.log "MOVE: #{e.targetTouches.length}"
+    if e.targetTouches.length > 1
+      @touch_stop(e)
+      return
+    # console.log 'touch painting move'
+    t = e.targetTouches[0]
+    @_internal_move(t.clientX, t.clientY)
+    
+  touch_stop: (e)=>
+    # console.log 'touch painting stop'
+    @zui.viewport.removeEventListener 'touchmove', @touch_move, @use_capture
+    @zui.viewport.removeEventListener 'touchend', @touch_stop, @use_capture
+    @zui.viewport.removeEventListener 'gesturestart', @touch_stop, @use_capture
     
   # smooth: ()=>
   #       # // This code is based on the work by Oleg V. Polikarpotchkin,
