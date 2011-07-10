@@ -1,17 +1,25 @@
 (function() {
-  var PanController, ZoomController;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var CSSNode, PanController, SVGNode, SurfaceNode, ZoomController;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  };
   PanController = (function() {
-    function PanController(viewport, html) {
+    function PanController(zui, html) {
       this.pan = __bind(this.pan, this);
       this.stop = __bind(this.stop, this);
       this.start = __bind(this.start, this);
-      this.attach = __bind(this.attach, this);      this.vp = viewport;
+      this.attach = __bind(this.attach, this);      this.vp = zui;
       this.vpHtml = html;
+      this.eventDispatcher = zui.viewport;
     }
     PanController.prototype.attach = function() {
       console.log('attaching pan');
-      return $(window).mousedown(this.start);
+      return $(this.eventDispatcher).mousedown(this.start);
     };
     PanController.prototype.start = function(e) {
       if (e.target === this.vpHtml) {
@@ -37,12 +45,13 @@
     return PanController;
   })();
   ZoomController = (function() {
-    function ZoomController(viewport) {
+    function ZoomController(zui) {
       this.zoom = __bind(this.zoom, this);
-      this.attach = __bind(this.attach, this);      this.vp = viewport;
+      this.attach = __bind(this.attach, this);      this.vp = zui;
+      this.eventDispatcher = zui.viewport;
     }
     ZoomController.prototype.attach = function() {
-      return $(window).mousewheel(this.zoom);
+      return $(this.eventDispatcher).mousewheel(this.zoom);
     };
     ZoomController.prototype.zoom = function(e) {
       var delta, f;
@@ -51,51 +60,96 @@
       if (delta < 0) {
         f *= -1;
       }
-      return this.vp.doZoom(f, e.clientX, e.clientY);
+      this.vp.doZoom(f, e.clientX, e.clientY);
+      e.stopImmediatePropagation();
+      return e.preventDefault();
     };
     return ZoomController;
   })();
-  window.Viewport = (function() {
-    function Viewport(vp, group) {
+  SurfaceNode = (function() {
+    function SurfaceNode(node) {
+      this.node = node;
+    }
+    return SurfaceNode;
+  })();
+  SVGNode = (function() {
+    __extends(SVGNode, SurfaceNode);
+    function SVGNode() {
+      this.apply = __bind(this.apply, this);
+      SVGNode.__super__.constructor.apply(this, arguments);
+    }
+    SVGNode.prototype.apply = function(panX, panY, scale) {
+      var singleSVG;
+      singleSVG = "translate(" + panX + ", " + panY + ") scale(" + scale + ", " + scale + ")";
+      return $(this.node).attr("transform", singleSVG);
+    };
+    return SVGNode;
+  })();
+  CSSNode = (function() {
+    __extends(CSSNode, SurfaceNode);
+    function CSSNode() {
+      this.apply = __bind(this.apply, this);
+      CSSNode.__super__.constructor.apply(this, arguments);
+    }
+    CSSNode.prototype.apply = function(panX, panY, scale) {
+      var matrix;
+      matrix = "matrix(" + scale + ", 0.0, 0.0, " + scale + ", " + panX + ", " + panY + ")";
+      return $(this.node).css("-webkit-transform", matrix);
+    };
+    return CSSNode;
+  })();
+  window.ZUI = (function() {
+    function ZUI(vp) {
       this.translateSurface = __bind(this.translateSurface, this);
       this.doZoom = __bind(this.doZoom, this);
       this.panBy = __bind(this.panBy, this);
       this.updateSurface = __bind(this.updateSurface, this);
       this.surfaceToClient = __bind(this.surfaceToClient, this);
-      this.clientToSurface = __bind(this.clientToSurface, this);      console.log("Viewport: ", vp, group);
-      this.zoomPos = 0.0;
+      this.clientToSurface = __bind(this.clientToSurface, this);
+      this.addCSSNode = __bind(this.addCSSNode, this);
+      this.addSVGNode = __bind(this.addSVGNode, this);      this.zoomPos = 0.0;
       this.scale = 1.0;
       this.viewport = vp;
-      this.surface = group;
-      this.vpOffset = $(this.viewport).offset();
+      this.surfaces = [];
+      this.vpOffset = $(vp).offset();
       this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
       this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
       console.log("OFFSET", this.vpOffM);
-      console.log("init pan", this.surface);
       this.zoom = new ZoomController(this);
       this.zoom.attach();
     }
-    Viewport.prototype.clientToSurface = function(x, y) {
+    ZUI.prototype.addSVGNode = function(svg) {
+      return this.surfaces.push(new SVGNode(svg));
+    };
+    ZUI.prototype.addCSSNode = function(css) {
+      return this.surfaces.push(new CSSNode(css));
+    };
+    ZUI.prototype.clientToSurface = function(x, y) {
       var sV, v;
       v = $V([x, y, 1]);
       return sV = this.surfaceM.inverse().multiply(this.vpOffM.inverse().multiply(v));
     };
-    Viewport.prototype.surfaceToClient = function(v) {
+    ZUI.prototype.surfaceToClient = function(v) {
       return this.vpOffM.multiply(this.surfaceM.multiply(v));
     };
-    Viewport.prototype.updateSurface = function() {
-      var pX, pY, singleSVG;
+    ZUI.prototype.updateSurface = function() {
+      var node, pX, pY, _i, _len, _ref, _results;
       pX = this.surfaceM.e(1, 3);
       pY = this.surfaceM.e(2, 3);
       this.scale = this.surfaceM.e(1, 1);
-      singleSVG = "translate(" + pX + ", " + pY + ") scale(" + this.scale + ", " + this.scale + ")";
-      return $(this.surface).attr("transform", singleSVG);
+      _ref = this.surfaces;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        node = _ref[_i];
+        _results.push(node.apply(pX, pY, this.scale));
+      }
+      return _results;
     };
-    Viewport.prototype.panBy = function(x, y) {
+    ZUI.prototype.panBy = function(x, y) {
       this.translateSurface(x, y);
       return this.updateSurface();
     };
-    Viewport.prototype.doZoom = function(byF, clientX, clientY) {
+    ZUI.prototype.doZoom = function(byF, clientX, clientY) {
       var c, dX, dY, newScale, scaleBy, sf;
       sf = this.clientToSurface(clientX, clientY);
       this.zoomPos += byF;
@@ -111,10 +165,9 @@
       }
       return this.updateSurface();
     };
-    Viewport.prototype.translateSurface = function(x, y) {
+    ZUI.prototype.translateSurface = function(x, y) {
       return this.surfaceM = this.surfaceM.add($M([[0, 0, x], [0, 0, y], [0, 0, 0]]));
     };
-    return Viewport;
+    return ZUI;
   })();
-  jQuery(function() {});
 }).call(this);

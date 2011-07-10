@@ -1,13 +1,14 @@
 
 class PanController
-  constructor: (viewport, html)->
-    @vp = viewport
+  constructor: (zui, html)->
+    @vp = zui
     @vpHtml = html
+    @eventDispatcher = zui.viewport #window
   
   attach: ()=>
     console.log 'attaching pan'
     # window.addEventListener 'mousedown', @start, false
-    $(window).mousedown @start
+    $(@eventDispatcher).mousedown @start
     
   start: (e)=>
     # console.log e, @vpHtml
@@ -34,14 +35,15 @@ class PanController
     @vp.panBy(dX, dY)
 
 class ZoomController
-  constructor: (viewport)->
-    @vp = viewport
+  constructor: (zui)->
+    @vp = zui
+    @eventDispatcher = zui.viewport #window
     
   attach: ()=>
-    $(window).mousewheel @zoom
+    $(@eventDispatcher).mousewheel @zoom
     
   zoom: (e)=>
-    # console.log e
+    # console.log e.clientX, e.clientY
     delta = e.wheelDelta || (e.detail * -1)
     f = 0.05
     if delta < 0
@@ -49,10 +51,30 @@ class ZoomController
       
     @vp.doZoom(f, e.clientX, e.clientY)
     
+    e.stopImmediatePropagation()
+    e.preventDefault()
 
-class window.Viewport
-  constructor: (vp, group)->
-    console.log "Viewport: ", vp, group
+class SurfaceNode
+  constructor: (@node)->    
+
+class SVGNode extends SurfaceNode
+  apply: (panX, panY, scale)=>
+    singleSVG = "translate(#{panX}, #{panY}) scale(#{scale}, #{scale})"
+    $(@node).attr("transform", singleSVG)
+    
+class CSSNode extends SurfaceNode
+  apply: (panX, panY, scale)=>
+    matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{panX}, #{panY})"
+    # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
+    # console.log @node, matrix
+    $(@node).css("-webkit-transform", matrix)
+    # $(@surface).css("-moz-transform", single)
+    # $(@surface).css("transform", matrix)
+    
+
+class window.ZUI
+  constructor: (vp)->
+    # console.log "Viewport: ", vp, group
     
     @zoomPos = 0.0
     @scale = 1.0
@@ -60,9 +82,11 @@ class window.Viewport
     # @pY = 0
     
     @viewport = vp #$('#viewport')[0]
-    @surface = group #$('#viewport .surface')[0]
+    # @surface = group #$('#viewport .surface')[0]
     
-    @vpOffset = $(@viewport).offset()
+    @surfaces = []
+    
+    @vpOffset = $(vp).offset()
     
     @vpOffM = $M([
       [1, 0, @vpOffset.left],
@@ -78,7 +102,7 @@ class window.Viewport
     
     console.log "OFFSET", @vpOffM
     
-    console.log "init pan", @surface
+    # console.log "init pan", @surface
     # @pan = new PanController(@, @viewport)
     # @pan.attach()
     
@@ -93,6 +117,12 @@ class window.Viewport
     #   console.log p.e(1), p.e(2), p.e(3)
     # , true
   
+  addSVGNode: (svg)=>
+    @surfaces.push new SVGNode(svg)
+    
+  addCSSNode: (css)=>
+    @surfaces.push new CSSNode(css)
+  
   clientToSurface: (x, y)=>
     v = $V([x, y, 1])
     sV = @surfaceM.inverse().multiply( @vpOffM.inverse().multiply(v) )
@@ -105,17 +135,9 @@ class window.Viewport
     pY = @surfaceM.e(2, 3)
     @scale = @surfaceM.e(1, 1)
     
-    
-    # matrix = "matrix(#{@scale}, 0.0, 0.0, #{@scale}, #{pX}, #{pY})"
-    # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
-    # console.log single
-    # $(@surface).css("-webkit-transform", matrix)
-    # $(@surface).css("-moz-transform", single)
-    # $(@surface).css("transform", matrix)
-    
-    singleSVG = "translate(#{pX}, #{pY}) scale(#{@scale}, #{@scale})"
-    $(@surface).attr("transform", singleSVG)
-  
+    for node in @surfaces
+      node.apply(pX, pY, @scale)
+
   panBy: (x, y)=>
     @translateSurface(x, y)
     @updateSurface()
@@ -160,7 +182,3 @@ class window.Viewport
   #   @zoomPos -= byF
   #   @updateSurface()
     
-
-jQuery ()->
-  # console.log "Ready"
-  # window.zui53 = new Viewport()

@@ -23,7 +23,11 @@
 </head>
 <body>
   <div id='surface'>
-    
+  
+    <div class='viewport' id='cssViewport'>
+      <button>test</button>
+      Hallo Welt
+    </div>
   </div>
 	
 	<script type='text/javascript'>
@@ -45,8 +49,12 @@
     
     var i = paper.image("http://www.google.de/images/experiments/nav_logo78.png", 100, 100, 200, 200);
     i.node.setAttribute('preserveAspectRatio', 'xMinYMin');
+    // i.node.setAttribute('draggable', false);
+    // i.attr({preserveAspectRatio: 'xMinYMin'})
+    window.zui53 = new window.ZUI($("#surface")[0]);
     
-    window.zui53 = new window.Viewport($("#surface")[0], paper.surface);
+    window.zui53.addSVGNode(paper.surface);
+    window.zui53.addCSSNode( $("#cssViewport")[0] );
     
     new window.Painting(window.zui53, paper);
     

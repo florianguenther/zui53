@@ -30,13 +30,23 @@ button {
   margin: 0; padding: 10px;
 }
 
-#viewport {
+#surface {
   position: relative;
-/*  border: 1px solid black;*/
+/*  border: 2px solid blue;*/
+/*  left: 20px;*/
+/*  top: 20px;*/
+
   overflow: hidden;
-  width: 100%; height: 100%;
+  width: 100%; 
+  height: 100%;
+/*  width: 500px; height: 300px;*/
   
-  .surface {
+  svg {
+    position: absolute;
+/*    display: none;*/
+  }
+  
+  .viewport {
     -webkit-transform-origin: 0 0;
     position: absolute;
 /*    -webkit-transform: translate(-20px, 20px);*/
