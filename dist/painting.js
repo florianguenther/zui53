@@ -4,19 +4,30 @@
     function Painting(zui, paper) {
       this.stop = __bind(this.stop, this);
       this.move = __bind(this.move, this);
-      this.start = __bind(this.start, this);      this.zui = zui;
+      this.start = __bind(this.start, this);
+      this.disable = __bind(this.disable, this);
+      this.enable = __bind(this.enable, this);      this.zui = zui;
       this.paper = paper;
-      $(zui.viewport).mousedown(this.start);
+      this.color = "#000000";
+      this.enable();
+      $(this.zui).bind('pan.start', this.disable);
+      $(this.zui).bind('pan.stop', this.enable);
     }
+    Painting.prototype.enable = function() {
+      return $(this.zui.viewport).bind('mousedown', this.start);
+    };
+    Painting.prototype.disable = function() {
+      return $(this.zui.viewport).unbind('mousedown', this.start);
+    };
     Painting.prototype.start = function(e) {
       var point;
-      console.log("start");
+      console.log("START Painting");
       point = this.zui.clientToSurface(e.clientX, e.clientY);
       this.array = [];
       this.array[0] = ["M", point.e(1), point.e(2)];
       this.item = this.paper.path(this.array);
       this.item.attr({
-        stroke: "#000000",
+        stroke: this.color,
         "stroke-width": 3 / this.zui.scale,
         "stroke-linejoin": "round",
         "stroke-linecap": "round"
@@ -26,7 +37,6 @@
     };
     Painting.prototype.move = function(e) {
       var point;
-      console.log("move");
       point = this.zui.clientToSurface(e.clientX, e.clientY);
       this.array.push(["L", point.e(1), point.e(2)]);
       return this.item.attr({
@@ -34,7 +44,6 @@
       });
     };
     Painting.prototype.stop = function(e) {
-      console.log("stop");
       $(this.zui.viewport).unbind('mousemove', this.move);
       return $(this.zui.viewport).unbind('mouseup', this.stop);
     };

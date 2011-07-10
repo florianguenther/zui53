@@ -1,31 +1,48 @@
 
 class PanController
-  constructor: (zui, html)->
+  constructor: (zui)->
     @vp = zui
-    @vpHtml = html
     @eventDispatcher = zui.viewport #window
   
   attach: ()=>
-    console.log 'attaching pan'
-    # window.addEventListener 'mousedown', @start, false
-    $(@eventDispatcher).mousedown @start
+    console.log "Attaching PAN"
+    @enablePan()
+    
+  enablePan: ()=>
+    $(@eventDispatcher).bind 'mousedown', @start
+    # @eventDispatcher.addEventListener 'mousedown', @start, true
+    
+  detach: ()=>
+    @disablePan()
+    
+  disablePan: ()=>
+    $(@eventDispatcher).unbind 'mousedown', @start
     
   start: (e)=>
-    # console.log e, @vpHtml
-    if e.target == @vpHtml
+    console.log "Start panning"
+    if e.target == @eventDispatcher
+      
+      $(@vp).trigger('pan.start', [])
+      
       @startX = e.layerX
       @startY = e.layerY
       # console.log 'start panning'
       window.addEventListener 'mousemove', @pan, true
       window.addEventListener 'mouseup', @stop, true
+      
+      console.log "STOP EVENT"
+      e.stopImmediatePropagation()
+      # e.preventDefault()
+    else
+      console.log "not correct target", e.target, @eventDispatcher
     
   stop: (e)=>
     console.log 'stop panning'
     window.removeEventListener 'mousemove', @pan, true
     window.removeEventListener 'mouseup', @stop, true
+    $(@vp).trigger('pan.stop', [])
     
   pan: (e)=>
-    # console.log e
     dX = e.layerX - @startX 
     dY = e.layerY - @startY 
     # console.log "pan: #{dX}, #{dY}"
@@ -33,6 +50,30 @@ class PanController
     @startY = e.layerY
     
     @vp.panBy(dX, dY)
+    
+class PanOnSpacebarController extends PanController
+  constructor: (zui)->
+    super
+    
+  attach: ()=>
+    console.log "Attach SpacePan"
+    $(window).unbind 'keyup', @disablePan
+    $(window).bind 'keydown', @enablePan
+      
+  enablePan: ()=>
+    # super.@attach()
+    super
+    @detach()
+    
+  disablePan: ()=>
+    super
+    @attach()
+    
+  detach: ()=>
+    console.log "Detach SpacePan"
+    $(window).unbind 'keydown', @enablePan
+    $(window).bind 'keyup', @disablePan
+    
 
 class ZoomController
   constructor: (zui)->
@@ -54,15 +95,15 @@ class ZoomController
     e.stopImmediatePropagation()
     e.preventDefault()
 
-class SurfaceNode
+class Surface
   constructor: (@node)->    
 
-class SVGNode extends SurfaceNode
+class SVGSurface extends Surface
   apply: (panX, panY, scale)=>
     singleSVG = "translate(#{panX}, #{panY}) scale(#{scale}, #{scale})"
     $(@node).attr("transform", singleSVG)
     
-class CSSNode extends SurfaceNode
+class CSSSurface extends Surface
   apply: (panX, panY, scale)=>
     matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{panX}, #{panY})"
     # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
@@ -71,19 +112,25 @@ class CSSNode extends SurfaceNode
     # $(@surface).css("-moz-transform", single)
     # $(@surface).css("transform", matrix)
     
+class window.Background extends Surface
+  constructor: (@node, @size)->
+  
+  apply: (panX, panY, scale)=>
+    # m = scale % 1
+    
+    s = scale * @size
+    
+    # console.log s, scale, m
+    
+    $(@node).css({"-webkit-background-size": "#{s}px #{s}px", "background-position": "#{panX}px #{panY}px"})
+    
 
 class window.ZUI
   constructor: (vp)->
-    # console.log "Viewport: ", vp, group
-    
-    @zoomPos = 0.0
+    @zoomPos = 0
     @scale = 1.0
-    # @pX = 0
-    # @pY = 0
     
-    @viewport = vp #$('#viewport')[0]
-    # @surface = group #$('#viewport .surface')[0]
-    
+    @viewport = vp
     @surfaces = []
     
     @vpOffset = $(vp).offset()
@@ -100,28 +147,28 @@ class window.ZUI
       [0, 0, 1]
     ])
     
-    console.log "OFFSET", @vpOffM
-    
-    # console.log "init pan", @surface
-    # @pan = new PanController(@, @viewport)
-    # @pan.attach()
-    
+    $(vp).scroll (e)=>
+      # If the browser automatically scrolls our viewport, we translate the scroll into a pan and
+      # reset the scroll. Otherwise MouseFocused Zooming and @clientToSurface is broken.
+      # This happens when the user types into a contenteditable element and the carat moves outside
+      # of the viewport.
+      jVP = $(@viewport)
+      @panBy( -jVP.scrollLeft(), -jVP.scrollTop() )
+      jVP.scrollTop(0).scrollLeft(0)
+  
+  enableController: ()=>
+    # (new PanOnSpacebarController(@)).attach()
     @zoom = new ZoomController(@)
     @zoom.attach()
-    
-    # window.addEventListener 'mousemove', (e)=>
-    #   # console.log "#{e.clientX}, #{e.clientY}" #, e.target
-    #   # console.log e
-    #   console.log "Client", e.clientX, e.clientY
-    #   p = @clientToSurface(e.clientX, e.clientY)
-    #   console.log p.e(1), p.e(2), p.e(3)
-    # , true
   
-  addSVGNode: (svg)=>
-    @surfaces.push new SVGNode(svg)
+  addSVGSurface: (svg)=>
+    @addSurface( new SVGSurface(svg) )
     
-  addCSSNode: (css)=>
-    @surfaces.push new CSSNode(css)
+  addCSSSurface: (css)=>
+    @addSurface( new CSSSurface(css) )
+    
+  addSurface: (surface)=>
+    @surfaces.push surface
   
   clientToSurface: (x, y)=>
     v = $V([x, y, 1])
@@ -171,14 +218,5 @@ class window.ZUI
       [0, 0, y],
       [0, 0, 0]
     ]))
-    
-  # zoomIn: (byF)=>
-  #   # @scale *= byF
-  #   @zoomPos += byF
-  #   @updateSurface()
-  #   
-  # zoomOut: (byF)=>
-  #   # @scale /= byF
-  #   @zoomPos -= byF
-  #   @updateSurface()
+
     

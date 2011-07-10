@@ -4,17 +4,29 @@ class window.Painting
     @zui = zui
     @paper = paper
     
-    $(zui.viewport).mousedown @start
+    @color = "#000000"
+    
+    @enable()
+    
+    $(@zui).bind 'pan.start', @disable
+    $(@zui).bind 'pan.stop', @enable
+    
+  enable: ()=>
+    $(@zui.viewport).bind 'mousedown', @start
+    # window.addEventListener 'mousedown', @start, true
+    
+  disable: ()=>
+    $(@zui.viewport).unbind 'mousedown', @start
     
   start: (e)=>
-    console.log "start"
+    console.log "START Painting"
     point = @zui.clientToSurface(e.clientX, e.clientY)
     
     @array = []
     @array[0] = ["M", point.e(1), point.e(2)];
     @item = @paper.path(@array);
     @item.attr({
-      stroke: "#000000",
+      stroke: @color,
       "stroke-width": (3 / @zui.scale),
       "stroke-linejoin": "round",
       "stroke-linecap": "round"
@@ -24,7 +36,6 @@ class window.Painting
     $(@zui.viewport).bind 'mouseup', @stop
     
   move: (e)=>
-    console.log "move"
     point = @zui.clientToSurface(e.clientX, e.clientY)
     
     @array.push ["L", point.e(1), point.e(2)];
@@ -32,7 +43,6 @@ class window.Painting
     @item.attr({path: @array});
     
   stop: (e)=>
-    console.log "stop"
     $(@zui.viewport).unbind 'mousemove', @move
     $(@zui.viewport).unbind 'mouseup', @stop
     

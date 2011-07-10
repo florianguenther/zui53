@@ -1,3 +1,7 @@
 module Zui53
-  # Your code goes here...
+  if ::Rails.version >= "3.1"
+    class Engine < ::Rails::Engine
+
+    end
+  end
 end
