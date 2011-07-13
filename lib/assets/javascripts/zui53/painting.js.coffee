@@ -1,24 +1,18 @@
 
 class window.Painting
-  constructor: (zui, paper, @color = "#000000")->
+  constructor: (zui, paper, @stroke_width = 3, @color = "#000000")->
     @zui = zui
     @paper = paper
-    
-    # @color = "#000000"
-    
-    # @enable()
-    
-    # $(@zui).bind 'pan.start', @disable
-    # $(@zui).bind 'pan.stop', @enable
-    
     @use_capture = true
     
-  enable: ()=>
+  attach: ()=>
     $(@zui.viewport).bind 'mousedown', @start
-    # window.addEventListener 'mousedown', @start, true
     @zui.viewport.addEventListener 'touchstart', @touch_start, @use_capture
     
-  disable: ()=>
+  detach: ()=>
+    @stop()
+    @touch_stop()
+    
     $(@zui.viewport).unbind 'mousedown', @start
     @zui.viewport.removeEventListener 'touchstart', @touch_start, @use_capture
     
@@ -30,7 +24,7 @@ class window.Painting
     @item = @paper.path(@array);
     @item.attr({
       stroke: @color,
-      "stroke-width": (3 / @zui.scale),
+      "stroke-width": (@stroke_width / @zui.scale),
       "stroke-linejoin": "round",
       "stroke-linecap": "round"
     });
@@ -49,8 +43,11 @@ class window.Painting
     $(@zui.viewport).bind 'mousemove', @move
     $(@zui.viewport).bind 'mouseup', @stop
     
+    e.preventDefault()
+    
   move: (e)=>
     @_internal_move(e.clientX, e.clientY)
+    e.preventDefault()
     
   stop: (e)=>
     $(@zui.viewport).unbind 'mousemove', @move
@@ -70,10 +67,10 @@ class window.Painting
     @zui.viewport.addEventListener 'gesturestart', @touch_stop, @use_capture
     
   touch_move: (e)=>
-    console.log "MOVE: #{e.targetTouches.length}"
-    if e.targetTouches.length > 1
-      @touch_stop(e)
-      return
+    # console.log "MOVE: #{e.targetTouches.length}"
+    # if e.targetTouches.length > 1
+    #   @touch_stop(e)
+    #   return
     # console.log 'touch painting move'
     t = e.targetTouches[0]
     @_internal_move(t.clientX, t.clientY)

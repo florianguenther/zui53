@@ -1,32 +1,16 @@
-#= require ./controller/pan_controller
-#= require ./controller/zoom_controller
-
-class SVGSurface
-  constructor: (@node)->
-    
-  apply: (panX, panY, scale)=>
-    singleSVG = "translate(#{panX}, #{panY}) scale(#{scale}, #{scale})"
-    $(@node).attr("transform", singleSVG)
-    
-class CSSSurface
-  constructor: (@node)->
-    
-  apply: (panX, panY, scale)=>
-    matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{panX}, #{panY})"
-    # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
-    # console.log @node, matrix
-    $(@node).css("-webkit-transform", matrix)
-    # $(@surface).css("-moz-transform", single)
-    # $(@surface).css("transform", matrix)
-    
-class window.Background
-  constructor: (@node, @size)->
+#= require ./tools/pan_tool
+#= require ./tools/zoom_tool
+#= require ./surfaces/svg_surface
+#= require ./surfaces/css_surface
   
-  apply: (panX, panY, scale)=>
-    # m = scale % 1
-    s = scale * @size
-    # console.log s, scale, m
-    $(@node).css({"-webkit-background-size": "#{s}px #{s}px", "background-position": "#{panX}px #{panY}px"})
+# class window.Background
+#   constructor: (@node, @size)->
+#   
+#   apply: (panX, panY, scale)=>
+#     # m = scale % 1
+#     s = scale * @size
+#     # console.log s, scale, m
+#     $(@node).css({"-webkit-background-size": "#{s}px #{s}px", "background-position": "#{panX}px #{panY}px"})
     
 
 class window.ZUI
@@ -37,14 +21,15 @@ class window.ZUI
     @viewport = vp
     @surfaces = []
     
-    @vpOffset = $(vp).offset()
-    
+    # Offset Matrix, this should change in future, if viewport HTML-Element changes position
+    vpOffset = $(vp).offset()
     @vpOffM = $M([
-      [1, 0, @vpOffset.left],
-      [0, 1, @vpOffset.top],
+      [1, 0, vpOffset.left],
+      [0, 1, vpOffset.top],
       [0, 0, 1]
     ])
     
+    # Base Transformation Matrix for Scale/Pan and Point-Calculation
     @surfaceM = $M([
       [1, 0, 0],
       [0, 1, 0],
@@ -60,18 +45,19 @@ class window.ZUI
       @panBy( -jVP.scrollLeft(), -jVP.scrollTop() )
       jVP.scrollTop(0).scrollLeft(0)
       
-    @enableController()
+    @toolset = new window.Toolset( new ZoomTool(@) )
+    # @enableController()
   
-  enableController: ()=>
-    # (new PanOnSpacebarController(@)).attach()
-    @zoom = new ZoomController(@)
-    @zoom.attach()
+  # enableController: ()=>
+  #   # (new PanOnSpacebarController(@)).attach()
+  #   @zoom = new ZoomTool(@)
+  #   @zoom.attach()
   
-  addSVGSurface: (svg)=>
-    @addSurface( new SVGSurface(svg) )
-    
-  addCSSSurface: (css)=>
-    @addSurface( new CSSSurface(css) )
+  # addSVGSurface: (svg)=>
+  #   @addSurface( new window.SVGSurface(svg) )
+  #   
+  # addCSSSurface: (css)=>
+  #   @addSurface( new window.CSSSurface(css) )
     
   addSurface: (surface)=>
     @surfaces.push surface
