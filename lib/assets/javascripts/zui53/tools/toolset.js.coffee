@@ -1,67 +1,78 @@
+namespace 'ZUI53.Tools', (exports)->
+  class exports.Base
+    constructor: ()->
+      @set = null
+      @group = null
+      @attached = false
+      # @exclusive = false
+    
+    attach: ()=>
+      @group.attach(@) if @group
+      @attached = true
+    
+    detach: ()=>
+      @attached = false
+      # if @exclusive
+      # @makeUnexclusive()
+    
+    makeExclusive: ()=>
+      # if @exclusive
+      #   return  
+      # @exclusive = true
+      @set.exclusive(@) if @set
+      @attach()
+    
+    makeUnexclusive: ()=>
+      # if !@exclusive
+      #   return
+      # @exclusive = false
+      @set.unexclusive() if @set
 
-class window.Tool
-  constructor: ()->
-    @set = null
-    @group = null
+  class exports.SetGroup
+    constructor: ()->
+      @tools = []
+      @current = null
+      @beforeExclusive = null
     
-  attach: ()=>
-    @group.attach(@) if @group
+    add: (tool)=>
+      tool.group = @
+      @tools.push(tool)
+      tool.attach() if @tools.length == 1
     
-  detach: ()=>
+    attach: (tool)=>
+      @current = tool
+      for t in @tools
+        t.detach() if t != tool
+      
+    requestExclusive: (tool)=>
+      @current.detach() if @current and @current != tool
+      @beforeExclusive = @current
     
-    
-  makeExclusive: ()=>
-    @set.exclusive(@) if @set
-    @attach()
-    
-  makeUnexclusive: ()=>
-    @set.unexclusive() if @set
+    requestUnexclusive: ()=>
+      @current = @beforeExclusive
+      @current.attach() if @current
 
-class window.ToolsetGroup
-  constructor: ()->
-    @tools = []
-    @current = null
-    @beforeExclusive = null
+  class exports.Set
+    constructor: (@default_tool)->
+      @groups = [ new exports.SetGroup() ]
     
-  add: (tool)=>
-    tool.group = @
-    @tools.push(tool)
-    tool.attach() if @tools.length == 1
+      @default_tool.set = @
+      @default_tool.attach() if @default_tool
     
-  attach: (tool)=>
-    @current = tool
-    for t in @tools
-      t.detach() if t != tool
+    add: (tool)=>
+      @groups[0].add(tool)
+      tool.set = @
+    
+    exclusive: (tool)=>
+      # console.log 'Make Exclusive'
+      for g in @groups
+        g.requestExclusive(tool)
       
-  requestExclusive: (tool)=>
-    @current.detach() if @current and @current != tool
-    @beforeExclusive = @current
+      @default_tool.detach() if @default_tool != tool and @default_tool
     
-  requestUnexclusive: ()=>
-    @current = @beforeExclusive
-    @current.attach() if @current
-
-class window.Toolset
-  constructor: (@default_tool)->
-    @groups = [ new ToolsetGroup() ]
-    
-    @default_tool.set = @
-    @default_tool.attach() if @default_tool
-    
-  add: (tool)=>
-    @groups[0].add(tool)
-    tool.set = @
-    
-  exclusive: (tool)=>
-    console.log 'Make Exclusive'
-    for g in @groups
-      g.requestExclusive(tool)
+    unexclusive: ()=>
+      for g in @groups
+        g.requestUnexclusive()
       
-    @default_tool.detach() if @default_tool != tool and @default_tool
-    
-  unexclusive: ()=>
-    for g in @groups
-      g.requestUnexclusive()
-      
-    @default_tool.attach() if @default_tool
-    console.log 'Make UN-Exclusive'
+      @default_tool.attach() if @default_tool
+      # console.log 'Make UN-Exclusive'

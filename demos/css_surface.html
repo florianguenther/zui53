@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html style='width: 100%; height:100%;'>
+<head>
+  <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js' type='text/javascript'></script>
+  <script src="../build/zui53.js" type="text/javascript"></script>
+  <script>
+    function initZUI(){
+      console.log(ZUI53);
+      var zui = new ZUI53.Viewport( document.getElementById('zui') );
+      zui.addSurface( new ZUI53.Surfaces.CSS( document.getElementById('viewport') ) );
+      
+      var pan_tool = new ZUI53.Tools.Pan(zui);
+      zui.toolset.add( pan_tool );
+      pan_tool.attach()
+      
+    }
+  </script>
+</head>
+<body onload='initZUI()' style='width:100%; height:100%; margin: 0; padding: 0;'>
+
+<div id='zui'>
+  <div id='viewport'>
+    <button style='position:absolute; left: 300px; top: 100px;'>Hello World</button>
+    
+    <div style='position: absolute; left: 100px; top: 100px; border: 2px solid red; padding: 10px;'>Hello World</div>
+  </div>
+</div>
+
+</body>
+</html>
