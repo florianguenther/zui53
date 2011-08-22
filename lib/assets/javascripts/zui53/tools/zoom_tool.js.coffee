@@ -20,12 +20,14 @@ namespace 'ZUI53.Tools', (exports)->
       @eventDispatcher.addEventListener 'gesturestart', @gesture_start, @use_capture
     
       @eventDispatcher.addEventListener 'MozTouchDown', @moz_touch_down, @use_capture
-    
       @eventDispatcher.addEventListener 'MozTouchUp', @moz_touch_up, @use_capture
   
     detach: ()=>
       $(@eventDispatcher).unmousewheel @zoom
       @eventDispatcher.removeEventListener 'gesturestart', @gesture_start, @use_capture
+      
+      @eventDispatcher.removeEventListener 'MozTouchDown', @moz_touch_down, @use_capture
+      @eventDispatcher.removeEventListener 'MozTouchUp', @moz_touch_up, @use_capture
   
   
   
