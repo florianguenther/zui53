@@ -8,7 +8,7 @@
   <style type="text/css">
     body {
       margin-top: 1.0em;
-      background-color: #51c997;
+      background-color: #fff;
       font-family: Helvetica, Arial, FreeSans, san-serif;
       color: #000000;
     }
@@ -16,21 +16,41 @@
       margin: 0 auto;
       width: 700px;
     }
-    h1 { font-size: 3.8em; color: #ae3668; margin-bottom: 3px; }
+    h1 { font-size: 3.8em; color: #333; margin-bottom: 3px; }
     h1 .small { font-size: 0.4em; }
     h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #ae3668; }
-    h3 { text-align: center; color: #ae3668; }
-    a { color: #ae3668; }
+    h2 { font-size: 1.5em; color: #333; }
+    h3 { text-align: center; color: #333; }
+    a { color: #333; }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
     pre { background: #000; color: #fff; padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
     .footer { text-align:center; padding-top:30px; font-style: italic; }
+    
+    .demo {
+      width: 100%;
+      height: 250px;
+      border: 2px solid black;
+    }
   </style>
+  
+  <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js' type='text/javascript'></script>
+  <script src="zui53.js" type="text/javascript"></script>
+  <script>
+    function initZUI(){
+      var zui = new ZUI53.Viewport( document.getElementById('zui_svg') );
+      zui.addSurface( new ZUI53.Surfaces.SVG( document.getElementById('svg_root_group') ) );
+
+      var pan_tool = new ZUI53.Tools.Pan(zui);
+      zui.toolset.add( pan_tool );
+      pan_tool.attach()
+
+    }
+  </script>
 </head>
 
-<body>
+<body onload='initZUI()'>
   <a href="http://github.com/florianguenther/zui53"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
   <div id="container">
@@ -42,17 +62,30 @@
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="http://github.com/florianguenther/zui53">zui53</a>
+    <h1><a href="http://github.com/florianguenther/zui53">ZUI53</a>
       <span class="small">by <a href="http://github.com/florianguenther">florianguenther</a></span></h1>
 
     <div class="description">
       ZUI53 is a JavaScript Library to create powerfull webbased Zoomable User Interfaces (ZUIs) with new technologies like HTML5 and CSS3.
     </div>
+    
+    <h2>Demos</h2>
+    <div id='zui_svg' class='demo'>
+      <svg height=100% width=100%>
+        <g id='svg_root_group'>
+          <path stroke=#F53F0C stroke-width=10 fill=#F5C60C stroke-linejoin=round d='M 10,90 L 90,90 L 50,14 Z'/>
+          <line stroke=black stroke-width=10 stroke-linecap=round x1=50 x2=50 y1=45 y2=75 />
+        </g>
+      </svg>
+    </div>
 
     <h2>Authors</h2>
-<p>Florian Günther (mail@gee-f.de)<br/><br/>      </p>
+<p>Florian Günther (mail@gee-f.de)
+<br/>
+<br/>      </p>
 <h2>Contact</h2>
-<p>Florian Günther (mail@gee-f.de)<br/>      </p>
+<p>Florian Günther (mail@gee-f.de)
+<br/>      </p>
 
 
     <h2>Download</h2>
