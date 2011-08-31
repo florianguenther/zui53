@@ -24,7 +24,7 @@ namespace 'ZUI53.Tools', (exports)->
       # console.log "start panning"
       $('body').addClass('panning')
   
-      @_start_with(e.layerX, e.layerY)
+      @_start_with(e.screenX, e.screenY)
   
       window.addEventListener 'mousemove', @pan, true
       window.addEventListener 'mouseup', @stop, true
@@ -32,7 +32,7 @@ namespace 'ZUI53.Tools', (exports)->
       e.preventDefault() 
       
     pan: (e)=>
-      @_pan_with(e.layerX, e.layerY)
+      @_pan_with(e.screenX, e.screenY)
 
     stop: (e)=>
       # console.log "stop panning"
