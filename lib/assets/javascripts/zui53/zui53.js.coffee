@@ -1,8 +1,8 @@
-#= require 'helper'
-#= require 'tools/pan_tool'
-#= require 'tools/zoom_tool'
-#= require 'surfaces/svg_surface'
-#= require 'surfaces/css_surface'
+#= require ./helper
+#= require ./tools/pan_tool
+#= require ./tools/zoom_tool
+#= require ./surfaces/svg_surface
+#= require ./surfaces/css_surface
 
 namespace 'ZUI53', (exports)->
   class exports.Viewport

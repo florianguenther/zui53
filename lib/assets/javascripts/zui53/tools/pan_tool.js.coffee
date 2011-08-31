@@ -1,4 +1,5 @@
-#= require 'tools/toolset'
+#= require ./toolset
+
 namespace 'ZUI53.Tools', (exports)->
   class exports.Pan extends exports.Base
     constructor: (zui)->

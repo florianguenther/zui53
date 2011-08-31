@@ -12,8 +12,13 @@ end
 
 task :core do
   puts "Building zui53"
-  env = Sprockets::Environment.new
-  env.paths << "lib/assets/javascripts/zui53"
-  env.paths << "vendor"
-  open("build/zui53.js", "w").write( env["index"] )
+  
+  assets = Sprockets::Environment.new() do |env|
+    env.logger = Logger.new(STDOUT)
+  end
+  
+  assets.append_path "lib/assets/javascripts/zui53"
+  assets.append_path "vendor/assets/javascripts"
+  
+  open("build/zui53.js", "w").write( assets["index"] )
 end

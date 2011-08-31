@@ -6,4 +6,4 @@ gemspec
 gem 'coffee-script'
 # gem 'uglifier'
 
-gem 'sprockets', '2.0.0.beta.10'
+gem 'sprockets', '>=2.0.0'

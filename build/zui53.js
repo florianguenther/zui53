@@ -1262,7 +1262,6 @@ var $P = Plane.create;
  * 
  * Date: Sat Dec 4 15:46:09 2010 -0800
  */
-
 ///////////////////////////////////////////////////////
 // Transform
 ///////////////////////////////////////////////////////
@@ -3336,6 +3335,7 @@ function namespace(name, callback)
   registerNS(name);
   callback( eval(name) );
 }
+;
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   namespace('ZUI53.Tools', function(exports) {
@@ -3582,7 +3582,9 @@ function namespace(name, callback)
       };
       Zoom.prototype.detach = function() {
         $(this.eventDispatcher).unmousewheel(this.zoom);
-        return this.eventDispatcher.removeEventListener('gesturestart', this.gesture_start, this.use_capture);
+        this.eventDispatcher.removeEventListener('gesturestart', this.gesture_start, this.use_capture);
+        this.eventDispatcher.removeEventListener('MozTouchDown', this.moz_touch_down, this.use_capture);
+        return this.eventDispatcher.removeEventListener('MozTouchUp', this.moz_touch_up, this.use_capture);
       };
       Zoom.prototype.fetch_touch = function(e, value) {
         if (this.t1 && this.t1.streamId === e.streamId) {
