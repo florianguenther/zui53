@@ -7,26 +7,16 @@
 namespace 'ZUI53', (exports)->
   class exports.Viewport
     constructor: (vp)->
-      @zoomPos = 0
-      @scale = 1.0
-
+      @min_scale = null
+      @max_scale = null
+      
       @viewport = @styleViewport(vp)
       @surfaces = []
     
       # Offset Matrix, this should change in future, if viewport HTML-Element changes position
-      @vpOffset = $(vp).offset()
-      @vpOffM = $M([
-        [1, 0, @vpOffset.left],
-        [0, 1, @vpOffset.top],
-        [0, 0, 1]
-      ])
+      @updateOffset()
       
-      # Base Transformation Matrix for Scale/Pan and Point-Calculation
-      @surfaceM = $M([
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1]
-      ])
+      @reset()
     
       $(vp).scroll (e)=>
         # If the browser automatically scrolls our viewport, we translate the scroll into a pan and
@@ -47,36 +37,72 @@ namespace 'ZUI53', (exports)->
         'height': '100%'
       })
       vp
-      
+    
+    updateOffset: ()=>
+      @vpOffset = $(@viewport).offset()
+      @vpOffM = $M([
+        [1, 0, @vpOffset.left],
+        [0, 1, @vpOffset.top],
+        [0, 0, 1]
+      ])
+    
+    reset: ()=>
+      @zoomPos = 0
+      @scale = 1.0
+      # Base Transformation Matrix for Scale/Pan and Point-Calculation
+      @surfaceM = $M([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+      ])
+      @updateSurface()
+    
     addSurface: (surface)=>
       @surfaces.push surface
+      @addLimits(surface.limits())
+      
+    addLimits: (limits)=>
+      return unless limits
+      if @min_scale || @max_scale
+        @min_scale = Math.max(limits[0], @min_scale) if limits[0]
+        @max_scale = Math.min(limits[1], @max_scale) if limits[1]
+      else
+        @min_scale = limits[0]
+        @max_scale = limits[1]
+      # console.log "LIMITS: #{@min_scale}, #{@max_scale}"
   
     clientToSurface: (x, y)=>
       v = $V([x, y, 1])
-      sV = @surfaceM.inverse().multiply( @vpOffM.inverse().multiply(v) )
+      sV = @surfaceM.inverse().multiply( @updateOffset().inverse().multiply(v) )
+      
+    layerToSurface: (x, y)=>
+      v = $V([x, y, 1])
+      sV = @surfaceM.inverse().multiply( v )
     
     surfaceToClient: (v)=>
-      @vpOffM.multiply( @surfaceM.multiply(v) )
+      @updateOffset().multiply( @surfaceM.multiply(v) )
+      
+    surfaceToLayer: (v)=>
+      @surfaceM.multiply(v)
   
     updateSurface: ()=>
-      pX = @surfaceM.e(1, 3)
-      pY = @surfaceM.e(2, 3)
-      @scale = @surfaceM.e(1, 1)
-    
+      v = @getPanAndScale()
       for node in @surfaces
-        node.apply(pX, pY, @scale)
+        node.apply(v[0], v[1], v[2])
+      
+      return true
 
     panBy: (x, y)=>
       @translateSurface(x, y)
       @updateSurface()
   
     zoomBy: (byF, clientX, clientY)=>
-      @zoomPos += byF
-      newScale = @_pos_to_scale(@zoomPos)
+      newScale = @_pos_to_scale(@zoomPos + byF)
       @zoomSet(newScale, clientX, clientY)
   
     zoomSet: (newScale, clientX, clientY)=>
-      # console.log "SET ZOOM: #{newScale}"
+      newScale = @fitToLimits(newScale)
+      @zoomPos = @_scale_to_pos(newScale)
       if newScale != @scale
         sf = @clientToSurface(clientX, clientY)
         scaleBy = newScale/@scale
@@ -90,6 +116,37 @@ namespace 'ZUI53', (exports)->
         @translateSurface(dX, dY)
       
       @updateSurface()
+      
+    # zoomByO: (byF, offsetX, offsetY)=>
+    #   # @zoomPos += byF
+    #   newScale = @_pos_to_scale(@zoomPos + byF)
+    #   @zoomSetO(newScale, offsetX, offsetY)
+    # 
+    # zoomSetO: (newScale, offsetX, offsetY)=>
+    #   newScale = @fitToLimits(newScale)
+    #   @zoomPos = @_scale_to_pos(newScale)
+    #   if newScale != @scale
+    #     sf = @layerToSurface(offsetX, offsetY)
+    #     scaleBy = newScale/@scale
+    # 
+    #     @surfaceM = @_scaleMatrix(@surfaceM, scaleBy)
+    #     @scale = newScale
+    # 
+    #     c = @surfaceToLayer(sf)
+    #     dX = offsetX - c.e(1)
+    #     dY = offsetY - c.e(2)
+    #     @translateSurface(dX, dY)
+    # 
+    #   @updateSurface()      
+    
+  
+    fitToLimits: (s)=>
+      # console.log "Try Scale: #{s}"
+      if @min_scale && s < @min_scale
+        s = @min_scale 
+      else if @max_scale && s > @max_scale
+        s = @max_scale 
+      return s
   
     translateSurface: (x, y)=>
       @surfaceM = @_translateMatrix(@surfaceM, x, y)
@@ -115,6 +172,7 @@ namespace 'ZUI53', (exports)->
       Math.log(s)
     
     avp: ()=>
+      @updateOffset()
       min = @clientToSurface(@vpOffset.left, @vpOffset.top)
       max = @clientToSurface(@vpOffset.left + $(@viewport).width(), @vpOffset.top + $(@viewport).height())
     
@@ -139,32 +197,52 @@ namespace 'ZUI53', (exports)->
       
       avp = @avp()
       s = Math.min(avp.width/evp.width, avp.height/evp.height)
-    
+
       # Expand
-      exp = 50/s
+      exp = 50/s  #expand 50px, just a constant at the moment, should be variable
       evp.x -= exp
       evp.y -= exp
       evp.width += 2*exp
       evp.height += 2*exp
       s = Math.min(avp.width/evp.width, avp.height/evp.height)
+      
+      s = @fitToLimits(s)
+      eC = @_boundsCenter(evp)
+      aC = @_boundsCenter(avp)
+      
+      @setPanAndScale(-eC.x*s, -eC.y*s, s)
+      @translateSurface( $(@viewport).width()/2, $(@viewport).height()/2) # Center
+
+      @updateSurface()
     
+    getPanAndScale: ()=>
+      [@surfaceM.e(1, 3), @surfaceM.e(2, 3), @surfaceM.e(1, 1)]
+    
+    setPanAndScale: (panX, panY, scale)=>
       @surfaceM = $M([
         [1, 0, 0],
         [0, 1, 0],
         [0, 0, 1]
       ])
-    
-      eC = @_boundsCenter(evp)
-      aC = @_boundsCenter(avp)
-    
-      @translateSurface(-eC.x*s, -eC.y*s)
-      @surfaceM = @_scaleMatrix(@surfaceM, s)
-    
-      @translateSurface( $(@viewport).width()/2, $(@viewport).height()/2)
-    
-      @zoomPos = @_scale_to_pos(s)
+
+      @translateSurface(panX, panY)
+      @surfaceM = @_scaleMatrix(@surfaceM, scale)
+      @scale = scale
+      @zoomPos = @_scale_to_pos(scale)
+      
+    getTransformString: ()=>
+      @getPanAndScale().join(',')
+      
+    setTransformString: (str)=>
+      return unless str
+      v = str.split(',')
+      console.log v.length
+      # return unless v.length == 3
+      panX = (Number) v[0]
+      panY = (Number) v[1]
+      scale = (Number) v[2]
+      @setPanAndScale(panX, panY, scale)
       @updateSurface()
-    
     
     
     

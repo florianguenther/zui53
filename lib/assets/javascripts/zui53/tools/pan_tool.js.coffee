@@ -30,7 +30,7 @@ namespace 'ZUI53.Tools', (exports)->
       window.addEventListener 'mousemove', @pan, true
       window.addEventListener 'mouseup', @stop, true
 
-      e.preventDefault() 
+      @stopEvent(e)
       
     pan: (e)=>
       @_pan_with(e.screenX, e.screenY)
@@ -44,6 +44,8 @@ namespace 'ZUI53.Tools', (exports)->
 
       window.removeEventListener 'touchmove', @pan, true
       window.removeEventListener 'touchstop', @stop, true
+      
+      @stopEvent(e)
       
     touch_start: (e)=>
       # console.log "start panning (touch)"

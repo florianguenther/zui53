@@ -10,6 +10,9 @@ namespace 'ZUI53.Surfaces', (exports)->
         'position': 'absolute'
       })
 
+    limits: ()->
+      null
+    
     apply: (panX, panY, scale)=>
       $(@node).transform({matrix: [scale,0.0,0.0,scale,panX,panY]});
       # matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{panX}, #{panY})"

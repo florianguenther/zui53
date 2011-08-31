@@ -42,10 +42,8 @@ namespace 'ZUI53.Tools', (exports)->
     update_moz_touch: ()=>
       if @t1 and @t2
         # calc midpoint
-        console.log 'two'
         try
           mp = @find_midpoint( {touches: [@t1, @t2]} )
-          console.log mp
         catch e
           console.log e
         
@@ -63,12 +61,6 @@ namespace 'ZUI53.Tools', (exports)->
       return i
       
     moz_touch_down: (e)=>
-      # @last_moz_touch = null
-      console.log 'touch down', e.streamId
-      # @touch.touches["t_#{e.streamId}"] = e
-      # @fetch_touch(e)
-      # @touch.touches.push(e)
-    
       @touch_df = null
     
       try
@@ -94,29 +86,9 @@ namespace 'ZUI53.Tools', (exports)->
         @gesture_move({scale: s})
       else
         @touch_df = 1/d
+
     
-    
-      console.log d
-    
-      # p1 = $V([e.clientX, e.clientY, 1])
-      # console.log e.streamId, p1.e(1), p1.e(2)
-      # 
-      # if @last_moz_touch
-      #   d = p1.subtract(@last_moz_touch)
-      #   @vp.panBy(d.e(1), d.e(2))
-      #   
-      # @last_moz_touch = p1
-    
-      # @touch.touches["t_#{e.streamId}"] = e
-      # console.log @touch.touches
-      # @fetch_touch(e)
-    
-    moz_touch_up: (e)=>
-      console.log 'touch up', e.streamId
-      # @touch.touches["t_#{e.streamId}"] = null
-      # @fetch_touch(e, null)
-      # @touch.touches.pop()
-    
+    moz_touch_up: (e)=>    
       i = @touch.touch_ids.indexOf(e.streamId)
       if i > 0
         console.log "Removed: #{i}"
@@ -126,12 +98,7 @@ namespace 'ZUI53.Tools', (exports)->
         # remove
         @touch.touches.splice(i, 1)
         @touch.touch_ids.splice(i, 1)
-      
-  
-  
-  
-  
-  
+
     zoom: (e)=>
       delta = e.wheelDelta || (e.detail * -1)
       f = 0.05
@@ -140,8 +107,7 @@ namespace 'ZUI53.Tools', (exports)->
       
       @vp.zoomBy(f, e.clientX, e.clientY)
     
-      e.stopImmediatePropagation()
-      e.preventDefault()
+      @stopEvent(e)
   
     gesture_start: (e)=>
       @_internal_gesture_start()
@@ -162,29 +128,12 @@ namespace 'ZUI53.Tools', (exports)->
       @_internal_gesture_end()
     
     _internal_gesture_start: ()=>
-      console.log "Gesture Start"
       @makeExclusive()
       @last_touch_p = null
       @start_scale = @vp.scale
     
     _internal_gesture_end: ()=>
       @makeUnexclusive()
-      console.log "Gesture End"
-    
-  
-    # touch_start: (e)=>
-    #   console.log "Touch Start"
-    #   # console.log "T Start: #{e.targetTouches.length}"
-    #   if e.targetTouches.length != 2
-    #     return
-    #     
-    #   # @makeExclusive()
-    #   e.preventDefault()
-    #   
-    #   # @eventDispatcher.addEventListener 'touchmove', @touch_move, @use_capture
-    #   # @eventDispatcher.addEventListener 'touchend', @touch_end, @use_capture
-    #   
-    #   @last_touch_p = @find_midpoint(e)
 
     touch_move: (e)=>
       # console.log "Touch Move: #{e.targetTouches.length}, #{e.touches.length}"
@@ -195,13 +144,6 @@ namespace 'ZUI53.Tools', (exports)->
         @vp.panBy(d.e(1), d.e(2))
       else
         @last_touch_p = @find_midpoint(e)
-
-    
-    # touch_end: (e)=>
-    #   @eventDispatcher.removeEventListener 'touchmove', @touch_move, @use_capture
-    #   @eventDispatcher.removeEventListener 'touchend', @touch_end, @use_capture
-    
-      # @makeUnexclusive()
     
     # Some Helper
   

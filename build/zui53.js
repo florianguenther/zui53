@@ -3597,12 +3597,10 @@ function namespace(name, callback)
       Zoom.prototype.update_moz_touch = function() {
         var mp;
         if (this.t1 && this.t2) {
-          console.log('two');
           try {
-            mp = this.find_midpoint({
+            return mp = this.find_midpoint({
               touches: [this.t1, this.t2]
             });
-            return console.log(mp);
           } catch (e) {
             return console.log(e);
           }
@@ -3621,7 +3619,6 @@ function namespace(name, callback)
       };
       Zoom.prototype.moz_touch_down = function(e) {
         var i;
-        console.log('touch down', e.streamId);
         this.touch_df = null;
         try {
           i = this.create_touch_index(e.streamId);
@@ -3642,17 +3639,15 @@ function namespace(name, callback)
         d = this.find_distance(this.touch);
         if (this.touch_df) {
           s = this.touch_df * d;
-          this.gesture_move({
+          return this.gesture_move({
             scale: s
           });
         } else {
-          this.touch_df = 1 / d;
+          return this.touch_df = 1 / d;
         }
-        return console.log(d);
       };
       Zoom.prototype.moz_touch_up = function(e) {
         var i;
-        console.log('touch up', e.streamId);
         i = this.touch.touch_ids.indexOf(e.streamId);
         if (i > 0) {
           console.log("Removed: " + i);
@@ -3694,14 +3689,12 @@ function namespace(name, callback)
         return this._internal_gesture_end();
       };
       Zoom.prototype._internal_gesture_start = function() {
-        console.log("Gesture Start");
         this.makeExclusive();
         this.last_touch_p = null;
         return this.start_scale = this.vp.scale;
       };
       Zoom.prototype._internal_gesture_end = function() {
-        this.makeUnexclusive();
-        return console.log("Gesture End");
+        return this.makeUnexclusive();
       };
       Zoom.prototype.touch_move = function(e) {
         var d, new_touch_p;
@@ -3743,6 +3736,9 @@ function namespace(name, callback)
         this.node = node;
         this.apply = __bind(this.apply, this);
       }
+      SVG.prototype.limits = function() {
+        return [0.0001, 20000];
+      };
       SVG.prototype.apply = function(panX, panY, scale) {
         var singleSVG;
         singleSVG = "translate(" + panX + ", " + panY + ") scale(" + scale + ", " + scale + ")";
@@ -3766,6 +3762,9 @@ function namespace(name, callback)
           'position': 'absolute'
         });
       }
+      CSS.prototype.limits = function() {
+        return null;
+      };
       CSS.prototype.apply = function(panX, panY, scale) {
         return $(this.node).transform({
           matrix: [scale, 0.0, 0.0, scale, panX, panY]
@@ -3780,22 +3779,30 @@ function namespace(name, callback)
   namespace('ZUI53', function(exports) {
     return exports.Viewport = (function() {
       function Viewport(vp) {
+        this.setTransformString = __bind(this.setTransformString, this);
+        this.getTransformString = __bind(this.getTransformString, this);
+        this.setPanAndScale = __bind(this.setPanAndScale, this);
+        this.getPanAndScale = __bind(this.getPanAndScale, this);
         this.showBounds = __bind(this.showBounds, this);
         this.avp = __bind(this.avp, this);
         this.translateSurface = __bind(this.translateSurface, this);
+        this.fitToLimits = __bind(this.fitToLimits, this);
         this.zoomSet = __bind(this.zoomSet, this);
         this.zoomBy = __bind(this.zoomBy, this);
         this.panBy = __bind(this.panBy, this);
         this.updateSurface = __bind(this.updateSurface, this);
         this.surfaceToClient = __bind(this.surfaceToClient, this);
+        this.layerToSurface = __bind(this.layerToSurface, this);
         this.clientToSurface = __bind(this.clientToSurface, this);
-        this.addSurface = __bind(this.addSurface, this);        this.zoomPos = 0;
-        this.scale = 1.0;
+        this.addLimits = __bind(this.addLimits, this);
+        this.addSurface = __bind(this.addSurface, this);
+        this.reset = __bind(this.reset, this);        this.min_scale = null;
+        this.max_scale = null;
         this.viewport = this.styleViewport(vp);
         this.surfaces = [];
         this.vpOffset = $(vp).offset();
         this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
-        this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+        this.reset();
         $(vp).scroll(__bind(function(e) {
           var jVP;
           jVP = $(this.viewport);
@@ -3813,29 +3820,54 @@ function namespace(name, callback)
         });
         return vp;
       };
+      Viewport.prototype.reset = function() {
+        this.zoomPos = 0;
+        this.scale = 1.0;
+        this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+        return this.updateSurface();
+      };
       Viewport.prototype.addSurface = function(surface) {
-        return this.surfaces.push(surface);
+        this.surfaces.push(surface);
+        return this.addLimits(surface.limits());
+      };
+      Viewport.prototype.addLimits = function(limits) {
+        if (!limits) {
+          return;
+        }
+        if (this.min_scale || this.max_scale) {
+          if (limits[0]) {
+            this.min_scale = Math.max(limits[0], this.min_scale);
+          }
+          if (limits[1]) {
+            return this.max_scale = Math.min(limits[1], this.max_scale);
+          }
+        } else {
+          this.min_scale = limits[0];
+          return this.max_scale = limits[1];
+        }
       };
       Viewport.prototype.clientToSurface = function(x, y) {
         var sV, v;
         v = $V([x, y, 1]);
         return sV = this.surfaceM.inverse().multiply(this.vpOffM.inverse().multiply(v));
       };
+      Viewport.prototype.layerToSurface = function(x, y) {
+        var sV, v;
+        v = $V([x, y, 1]);
+        return sV = this.surfaceM.inverse().multiply(v);
+      };
       Viewport.prototype.surfaceToClient = function(v) {
         return this.vpOffM.multiply(this.surfaceM.multiply(v));
       };
       Viewport.prototype.updateSurface = function() {
-        var node, pX, pY, _i, _len, _ref, _results;
-        pX = this.surfaceM.e(1, 3);
-        pY = this.surfaceM.e(2, 3);
-        this.scale = this.surfaceM.e(1, 1);
+        var node, v, _i, _len, _ref;
+        v = this.getPanAndScale();
         _ref = this.surfaces;
-        _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           node = _ref[_i];
-          _results.push(node.apply(pX, pY, this.scale));
+          node.apply(v[0], v[1], v[2]);
         }
-        return _results;
+        return true;
       };
       Viewport.prototype.panBy = function(x, y) {
         this.translateSurface(x, y);
@@ -3843,12 +3875,13 @@ function namespace(name, callback)
       };
       Viewport.prototype.zoomBy = function(byF, clientX, clientY) {
         var newScale;
-        this.zoomPos += byF;
-        newScale = this._pos_to_scale(this.zoomPos);
+        newScale = this._pos_to_scale(this.zoomPos + byF);
         return this.zoomSet(newScale, clientX, clientY);
       };
       Viewport.prototype.zoomSet = function(newScale, clientX, clientY) {
         var c, dX, dY, scaleBy, sf;
+        newScale = this.fitToLimits(newScale);
+        this.zoomPos = this._scale_to_pos(newScale);
         if (newScale !== this.scale) {
           sf = this.clientToSurface(clientX, clientY);
           scaleBy = newScale / this.scale;
@@ -3860,6 +3893,14 @@ function namespace(name, callback)
           this.translateSurface(dX, dY);
         }
         return this.updateSurface();
+      };
+      Viewport.prototype.fitToLimits = function(s) {
+        if (this.min_scale && s < this.min_scale) {
+          s = this.min_scale;
+        } else if (this.max_scale && s > this.max_scale) {
+          s = this.max_scale;
+        }
+        return s;
       };
       Viewport.prototype.translateSurface = function(x, y) {
         return this.surfaceM = this._translateMatrix(this.surfaceM, x, y);
@@ -3907,13 +3948,37 @@ function namespace(name, callback)
         evp.width += 2 * exp;
         evp.height += 2 * exp;
         s = Math.min(avp.width / evp.width, avp.height / evp.height);
-        this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+        s = this.fitToLimits(s);
         eC = this._boundsCenter(evp);
         aC = this._boundsCenter(avp);
-        this.translateSurface(-eC.x * s, -eC.y * s);
-        this.surfaceM = this._scaleMatrix(this.surfaceM, s);
+        this.setPanAndScale(-eC.x * s, -eC.y * s, s);
         this.translateSurface($(this.viewport).width() / 2, $(this.viewport).height() / 2);
-        this.zoomPos = this._scale_to_pos(s);
+        return this.updateSurface();
+      };
+      Viewport.prototype.getPanAndScale = function() {
+        return [this.surfaceM.e(1, 3), this.surfaceM.e(2, 3), this.surfaceM.e(1, 1)];
+      };
+      Viewport.prototype.setPanAndScale = function(panX, panY, scale) {
+        this.surfaceM = $M([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+        this.translateSurface(panX, panY);
+        this.surfaceM = this._scaleMatrix(this.surfaceM, scale);
+        this.scale = scale;
+        return this.zoomPos = this._scale_to_pos(scale);
+      };
+      Viewport.prototype.getTransformString = function() {
+        return this.getPanAndScale().join(',');
+      };
+      Viewport.prototype.setTransformString = function(str) {
+        var panX, panY, scale, v;
+        if (!str) {
+          return;
+        }
+        v = str.split(',');
+        console.log(v.length);
+        panX = Number(v[0]);
+        panY = Number(v[1]);
+        scale = Number(v[2]);
+        this.setPanAndScale(panX, panY, scale);
         return this.updateSurface();
       };
       return Viewport;

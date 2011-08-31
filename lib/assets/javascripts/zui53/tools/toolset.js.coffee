@@ -27,6 +27,11 @@ namespace 'ZUI53.Tools', (exports)->
       #   return
       # @exclusive = false
       @set.unexclusive() if @set
+      
+    stopEvent: (e)=>
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      false
 
   class exports.SetGroup
     constructor: ()->

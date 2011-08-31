@@ -6,12 +6,14 @@
   <script>
     function initZUI(){
       console.log(ZUI53);
-      var zui = new ZUI53.Viewport( document.getElementById('zui') );
+      zui = new ZUI53.Viewport( document.getElementById('zui') );
       zui.addSurface( new ZUI53.Surfaces.SVG( document.getElementById('svg_root_group') ) );
       
       var pan_tool = new ZUI53.Tools.Pan(zui);
       zui.toolset.add( pan_tool );
       pan_tool.attach()
+      
+      zui.showBounds({width: 10, height: 10, x: 45, y: 45})
       
     }
   </script>

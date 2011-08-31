@@ -7,6 +7,9 @@ namespace 'ZUI53.Surfaces', (exports)->
       #   'width': '100%',
       #   'height': '100%'
       # })
+      
+    limits: ()->
+      [0.0001, 20000] #20000
     
     apply: (panX, panY, scale)=>
       singleSVG = "translate(#{panX}, #{panY}) scale(#{scale}, #{scale})"
