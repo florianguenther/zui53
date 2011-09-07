@@ -40,8 +40,8 @@ namespace 'ZUI53', (exports)->
     updateOffset: ()=>
       @vpOffset = $(@viewport).offset()
       
-      @vpOffset.left -= (Number) window.document.body.scrollLeft
-      @vpOffset.top  -= (Number) window.document.body.scrollTop
+      @vpOffset.left -= (Number) $(window.document).scrollLeft()
+      @vpOffset.top  -= (Number) $(window.document).scrollTop()
       
       @vpOffM = $M([
         [1, 0, @vpOffset.left],

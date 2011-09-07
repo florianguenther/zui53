@@ -3830,8 +3830,8 @@ function namespace(name, callback)
       };
       Viewport.prototype.updateOffset = function() {
         this.vpOffset = $(this.viewport).offset();
-        this.vpOffset.left -= Number(window.document.body.scrollLeft);
-        this.vpOffset.top -= Number(window.document.body.scrollTop);
+        this.vpOffset.left -= Number($(window.document).scrollLeft());
+        this.vpOffset.top -= Number($(window.document).scrollTop());
         this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
         return this.vpOffM;
       };
