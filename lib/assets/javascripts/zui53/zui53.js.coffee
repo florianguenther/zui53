@@ -17,7 +17,6 @@ namespace 'ZUI53', (exports)->
       @updateOffset()
       
       @reset()
-    
       $(vp).scroll (e)=>
         # If the browser automatically scrolls our viewport, we translate the scroll into a pan and
         # reset the scroll. Otherwise MouseFocused Zooming and @clientToSurface is broken.
@@ -40,11 +39,17 @@ namespace 'ZUI53', (exports)->
     
     updateOffset: ()=>
       @vpOffset = $(@viewport).offset()
+      
+      @vpOffset.left -= (Number) window.document.body.scrollLeft
+      @vpOffset.top  -= (Number) window.document.body.scrollTop
+      
       @vpOffM = $M([
         [1, 0, @vpOffset.left],
         [0, 1, @vpOffset.top],
         [0, 0, 1]
       ])
+
+      return @vpOffM
     
     reset: ()=>
       @zoomPos = 0
@@ -60,6 +65,10 @@ namespace 'ZUI53', (exports)->
     addSurface: (surface)=>
       @surfaces.push surface
       @addLimits(surface.limits())
+      
+    removeSurface: (surface)=>
+      i = @surfaces.indexOf(surface)
+      @surfaces.splice(i, 1) if i >= 0
       
     addLimits: (limits)=>
       return unless limits
@@ -236,7 +245,7 @@ namespace 'ZUI53', (exports)->
     setTransformString: (str)=>
       return unless str
       v = str.split(',')
-      console.log v.length
+      # console.log v.length
       # return unless v.length == 3
       panX = (Number) v[0]
       panY = (Number) v[1]

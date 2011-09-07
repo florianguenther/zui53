@@ -3341,6 +3341,7 @@ function namespace(name, callback)
   namespace('ZUI53.Tools', function(exports) {
     exports.Base = (function() {
       function Base() {
+        this.stopEvent = __bind(this.stopEvent, this);
         this.makeUnexclusive = __bind(this.makeUnexclusive, this);
         this.makeExclusive = __bind(this.makeExclusive, this);
         this.detach = __bind(this.detach, this);
@@ -3367,6 +3368,11 @@ function namespace(name, callback)
         if (this.set) {
           return this.set.unexclusive();
         }
+      };
+      Base.prototype.stopEvent = function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return false;
       };
       return Base;
     })();
@@ -3494,7 +3500,7 @@ function namespace(name, callback)
         this._start_with(e.screenX, e.screenY);
         window.addEventListener('mousemove', this.pan, true);
         window.addEventListener('mouseup', this.stop, true);
-        return e.preventDefault();
+        return this.stopEvent(e);
       };
       Pan.prototype.pan = function(e) {
         return this._pan_with(e.screenX, e.screenY);
@@ -3504,7 +3510,8 @@ function namespace(name, callback)
         window.removeEventListener('mousemove', this.pan, true);
         window.removeEventListener('mouseup', this.stop, true);
         window.removeEventListener('touchmove', this.pan, true);
-        return window.removeEventListener('touchstop', this.stop, true);
+        window.removeEventListener('touchstop', this.stop, true);
+        return this.stopEvent(e);
       };
       Pan.prototype.touch_start = function(e) {
         this._start_with(e.touches[0].clientX, e.touches[0].clientY);
@@ -3667,8 +3674,7 @@ function namespace(name, callback)
           f *= -1;
         }
         this.vp.zoomBy(f, e.clientX, e.clientY);
-        e.stopImmediatePropagation();
-        return e.preventDefault();
+        return this.stopEvent(e);
       };
       Zoom.prototype.gesture_start = function(e) {
         this._internal_gesture_start();
@@ -3791,17 +3797,19 @@ function namespace(name, callback)
         this.zoomBy = __bind(this.zoomBy, this);
         this.panBy = __bind(this.panBy, this);
         this.updateSurface = __bind(this.updateSurface, this);
+        this.surfaceToLayer = __bind(this.surfaceToLayer, this);
         this.surfaceToClient = __bind(this.surfaceToClient, this);
         this.layerToSurface = __bind(this.layerToSurface, this);
         this.clientToSurface = __bind(this.clientToSurface, this);
         this.addLimits = __bind(this.addLimits, this);
+        this.removeSurface = __bind(this.removeSurface, this);
         this.addSurface = __bind(this.addSurface, this);
-        this.reset = __bind(this.reset, this);        this.min_scale = null;
+        this.reset = __bind(this.reset, this);
+        this.updateOffset = __bind(this.updateOffset, this);        this.min_scale = null;
         this.max_scale = null;
         this.viewport = this.styleViewport(vp);
         this.surfaces = [];
-        this.vpOffset = $(vp).offset();
-        this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
+        this.updateOffset();
         this.reset();
         $(vp).scroll(__bind(function(e) {
           var jVP;
@@ -3820,6 +3828,13 @@ function namespace(name, callback)
         });
         return vp;
       };
+      Viewport.prototype.updateOffset = function() {
+        this.vpOffset = $(this.viewport).offset();
+        this.vpOffset.left -= Number(window.document.body.scrollLeft);
+        this.vpOffset.top -= Number(window.document.body.scrollTop);
+        this.vpOffM = $M([[1, 0, this.vpOffset.left], [0, 1, this.vpOffset.top], [0, 0, 1]]);
+        return this.vpOffM;
+      };
       Viewport.prototype.reset = function() {
         this.zoomPos = 0;
         this.scale = 1.0;
@@ -3829,6 +3844,13 @@ function namespace(name, callback)
       Viewport.prototype.addSurface = function(surface) {
         this.surfaces.push(surface);
         return this.addLimits(surface.limits());
+      };
+      Viewport.prototype.removeSurface = function(surface) {
+        var i;
+        i = this.surfaces.indexOf(surface);
+        if (i >= 0) {
+          return this.surfaces.splice(i, 1);
+        }
       };
       Viewport.prototype.addLimits = function(limits) {
         if (!limits) {
@@ -3849,7 +3871,7 @@ function namespace(name, callback)
       Viewport.prototype.clientToSurface = function(x, y) {
         var sV, v;
         v = $V([x, y, 1]);
-        return sV = this.surfaceM.inverse().multiply(this.vpOffM.inverse().multiply(v));
+        return sV = this.surfaceM.inverse().multiply(this.updateOffset().inverse().multiply(v));
       };
       Viewport.prototype.layerToSurface = function(x, y) {
         var sV, v;
@@ -3857,7 +3879,10 @@ function namespace(name, callback)
         return sV = this.surfaceM.inverse().multiply(v);
       };
       Viewport.prototype.surfaceToClient = function(v) {
-        return this.vpOffM.multiply(this.surfaceM.multiply(v));
+        return this.updateOffset().multiply(this.surfaceM.multiply(v));
+      };
+      Viewport.prototype.surfaceToLayer = function(v) {
+        return this.surfaceM.multiply(v);
       };
       Viewport.prototype.updateSurface = function() {
         var node, v, _i, _len, _ref;
@@ -3919,6 +3944,7 @@ function namespace(name, callback)
       };
       Viewport.prototype.avp = function() {
         var del, max, min;
+        this.updateOffset();
         min = this.clientToSurface(this.vpOffset.left, this.vpOffset.top);
         max = this.clientToSurface(this.vpOffset.left + $(this.viewport).width(), this.vpOffset.top + $(this.viewport).height());
         del = max.subtract(min);
@@ -3974,7 +4000,6 @@ function namespace(name, callback)
           return;
         }
         v = str.split(',');
-        console.log(v.length);
         panX = Number(v[0]);
         panY = Number(v[1]);
         scale = Number(v[2]);
