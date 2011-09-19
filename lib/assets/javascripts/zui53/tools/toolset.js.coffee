@@ -30,7 +30,8 @@ namespace 'ZUI53.Tools', (exports)->
       
     stopEvent: (e)=>
       e.preventDefault()
-      e.stopImmediatePropagation()
+      if e.stopImmediatePropagation?
+        e.stopImmediatePropagation()
       false
 
   class exports.SetGroup
