@@ -43,7 +43,7 @@ namespace 'ZUI53.Tools', (exports)->
       window.removeEventListener 'mouseup', @stop, true
 
       window.removeEventListener 'touchmove', @pan, true
-      window.removeEventListener 'touchstop', @stop, true
+      window.removeEventListener 'touchend', @stop, true
       
       @stopEvent(e)
       
@@ -51,7 +51,7 @@ namespace 'ZUI53.Tools', (exports)->
       # console.log "start panning (touch)"
       @_start_with(e.touches[0].clientX, e.touches[0].clientY)
       @eventDispatcher.addEventListener 'touchmove', @touch_move, true
-      @eventDispatcher.addEventListener 'touchstop', @touch_stop, true
+      @eventDispatcher.addEventListener 'touchend', @touch_stop, true
       e.preventDefault()
   
     touch_move: (e)=>
@@ -59,7 +59,7 @@ namespace 'ZUI53.Tools', (exports)->
     
     touch_stop: (e)=>
       @eventDispatcher.removeEventListener 'touchmove', @touch_move, true
-      @eventDispatcher.removeEventListener 'touchstop', @touch_stop, true
+      @eventDispatcher.removeEventListener 'touchend', @touch_stop, true
   
     _pan_with: (x, y)=>
       # console.log "panning PAN Tool"
