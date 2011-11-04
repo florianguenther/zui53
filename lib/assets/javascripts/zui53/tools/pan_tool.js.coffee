@@ -5,6 +5,7 @@ namespace 'ZUI53.Tools', (exports)->
     constructor: (zui)->
       @vp = zui
       @eventDispatcher = zui.viewport #window
+      @disabled = false
   
     attach: ()=>
       # console.log "Attaching PAN"
@@ -22,6 +23,9 @@ namespace 'ZUI53.Tools', (exports)->
       $(@eventDispatcher).unbind 'touchstart', @touch_start
     
     start: (e)=>
+      if @disabled
+        return
+
       # console.log "start panning"
       $('body').addClass('panning')
   
@@ -31,6 +35,12 @@ namespace 'ZUI53.Tools', (exports)->
       window.addEventListener 'mouseup', @stop, true
 
       @stopEvent(e)
+
+    disable: ->
+      @disabled = true
+
+    enable: ->
+      @disabled = false
       
     pan: (e)=>
       @_pan_with(e.screenX, e.screenY)
@@ -48,6 +58,9 @@ namespace 'ZUI53.Tools', (exports)->
       @stopEvent(e)
       
     touch_start: (e)=>
+      if @disabled
+        return
+
       # console.log "start panning (touch)"
       @_start_with(e.originalEvent.touches[0].clientX, e.originalEvent.touches[0].clientY)
       @eventDispatcher.addEventListener 'touchmove', @touch_move, true
