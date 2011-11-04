@@ -10,7 +10,7 @@ namespace 'ZUI53.Tools', (exports)->
       # console.log "Attaching PAN"
       $('body').addClass('pan')
       $(@eventDispatcher).bind 'mousedown', @start
-      @eventDispatcher.addEventListener 'touchstart', @touch_start, true
+      $(@eventDispatcher).bind 'touchstart', @touch_start
   
     detach: ()=>
       # console.log "Detach PAN.."
@@ -19,7 +19,7 @@ namespace 'ZUI53.Tools', (exports)->
       @touch_stop(null)
     
       $(@eventDispatcher).unbind 'mousedown', @start
-      @eventDispatcher.removeEventListener 'touchstart', @touch_start, true
+      $(@eventDispatcher).unbind 'touchstart', @touch_start
     
     start: (e)=>
       # console.log "start panning"
@@ -49,10 +49,10 @@ namespace 'ZUI53.Tools', (exports)->
       
     touch_start: (e)=>
       # console.log "start panning (touch)"
-      @_start_with(e.touches[0].clientX, e.touches[0].clientY)
+      @_start_with(e.originalEvent.touches[0].clientX, e.originalEvent.touches[0].clientY)
       @eventDispatcher.addEventListener 'touchmove', @touch_move, true
       @eventDispatcher.addEventListener 'touchend', @touch_stop, true
-      e.preventDefault()
+      e.originalEvent.preventDefault()
   
     touch_move: (e)=>
       @_pan_with(e.touches[0].clientX, e.touches[0].clientY)
