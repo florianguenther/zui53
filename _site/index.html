@@ -1,10 +1,28 @@
----
-layout: default
-title: florianguenther/zui53 @ GitHub
----
+<!DOCTYPE html>
+<html>
+<head>
+  <title>florianguenther/zui53 @ GitHub</title>
+  <link rel='stylesheet' href='/assets/main.css' type='text/css' />
+  
+  <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'></script>
+  
+  <script src="/assets/zui53.js?t=9" type="text/javascript"></script>
+  
+  <script type='text/javascript'>
+    jQuery(function(){
+      // after jquery loaded
+    });
+  </script>
+  
+  
+</head>
 
-
-  <script>
+<body>
+  
+<div id='content'>
+  
+  
+    <script>
     function initZUI(){
       var zui = new ZUI53.Viewport( $('#zui_svg')[0] );
       zui.addSurface( new ZUI53.Surfaces.SVG( $('#svg_root_group')[0] ) );
@@ -100,3 +118,8 @@ title: florianguenther/zui53 @ GitHub
   </div>
 
 
+
+</div>
+
+</body>
+</html>

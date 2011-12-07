@@ -1,0 +1,1 @@
+exclude: Gemfile, Gemfile.lock, Rakefile, config.rb, Guardfile, Procfile
