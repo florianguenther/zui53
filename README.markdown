@@ -5,8 +5,11 @@ It is the library behind [http://sketchub.com/](http://sketchub.com/) and is run
 # Browser/Plattform Compatibility
 ToDo
 
+# Demo
+Visit [http://florianguenther.com/zui53/](http://florianguenther.com/zui53/) to see some demos in action or have a look into the 'demos' folder.
+
 # Usage
-See the 'demos' folder
+ToDo
 
 # Build
 The Library is written in CoffeeScript. It uses Sprockets to handle dependencies and to generate the build output.
