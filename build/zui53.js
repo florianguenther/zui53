@@ -3371,7 +3371,9 @@ function namespace(name, callback)
       };
       Base.prototype.stopEvent = function(e) {
         e.preventDefault();
-        e.stopImmediatePropagation();
+        if (e.stopImmediatePropagation != null) {
+          e.stopImmediatePropagation();
+        }
         return false;
       };
       return Base;
@@ -3487,13 +3489,13 @@ function namespace(name, callback)
       Pan.prototype.attach = function() {
         $('body').addClass('pan');
         $(this.eventDispatcher).bind('mousedown', this.start);
-        return this.eventDispatcher.addEventListener('touchstart', this.touch_start, true);
+        return $(this.eventDispatcher).bind('touchstart', this.touch_start);
       };
       Pan.prototype.detach = function() {
         $('body').removeClass('pan');
         this.touch_stop(null);
         $(this.eventDispatcher).unbind('mousedown', this.start);
-        return this.eventDispatcher.removeEventListener('touchstart', this.touch_start, true);
+        return $(this.eventDispatcher).unbind('touchstart', this.touch_start);
       };
       Pan.prototype.start = function(e) {
         $('body').addClass('panning');
@@ -3510,21 +3512,21 @@ function namespace(name, callback)
         window.removeEventListener('mousemove', this.pan, true);
         window.removeEventListener('mouseup', this.stop, true);
         window.removeEventListener('touchmove', this.pan, true);
-        window.removeEventListener('touchstop', this.stop, true);
+        window.removeEventListener('touchend', this.stop, true);
         return this.stopEvent(e);
       };
       Pan.prototype.touch_start = function(e) {
-        this._start_with(e.touches[0].clientX, e.touches[0].clientY);
+        this._start_with(e.originalEvent.touches[0].clientX, e.originalEvent.touches[0].clientY);
         this.eventDispatcher.addEventListener('touchmove', this.touch_move, true);
-        this.eventDispatcher.addEventListener('touchstop', this.touch_stop, true);
-        return e.preventDefault();
+        this.eventDispatcher.addEventListener('touchend', this.touch_stop, true);
+        return e.originalEvent.preventDefault();
       };
       Pan.prototype.touch_move = function(e) {
         return this._pan_with(e.touches[0].clientX, e.touches[0].clientY);
       };
       Pan.prototype.touch_stop = function(e) {
         this.eventDispatcher.removeEventListener('touchmove', this.touch_move, true);
-        return this.eventDispatcher.removeEventListener('touchstop', this.touch_stop, true);
+        return this.eventDispatcher.removeEventListener('touchend', this.touch_stop, true);
       };
       Pan.prototype._pan_with = function(x, y) {
         var dX, dY;
