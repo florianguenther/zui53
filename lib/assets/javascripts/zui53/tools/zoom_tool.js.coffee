@@ -61,6 +61,9 @@ namespace 'ZUI53.Tools', (exports)->
       return i
       
     moz_touch_down: (e)=>
+      if @disabled
+        return
+        
       @touch_df = null
     
       try
@@ -88,7 +91,10 @@ namespace 'ZUI53.Tools', (exports)->
         @touch_df = 1/d
 
     
-    moz_touch_up: (e)=>    
+    moz_touch_up: (e)=>
+      if @disabled
+        return
+          
       i = @touch.touch_ids.indexOf(e.streamId)
       if i > 0
         console.log "Removed: #{i}"
@@ -100,6 +106,9 @@ namespace 'ZUI53.Tools', (exports)->
         @touch.touch_ids.splice(i, 1)
 
     zoom: (e)=>
+      if @disabled
+        return
+        
       delta = e.wheelDelta || (e.detail * -1)
       f = 0.05
       if delta < 0
@@ -110,6 +119,9 @@ namespace 'ZUI53.Tools', (exports)->
       @stopEvent(e)
   
     gesture_start: (e)=>
+      if @disabled
+        return
+        
       @_internal_gesture_start()
       @eventDispatcher.addEventListener 'gesturechange', @gesture_move, @use_capture
       @eventDispatcher.addEventListener 'gestureend', @gesture_end, @use_capture

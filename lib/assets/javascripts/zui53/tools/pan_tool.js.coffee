@@ -5,7 +5,6 @@ namespace 'ZUI53.Tools', (exports)->
     constructor: (zui)->
       @vp = zui
       @eventDispatcher = zui.viewport #window
-      @disabled = false
   
     attach: ()=>
       # console.log "Attaching PAN"
@@ -35,12 +34,6 @@ namespace 'ZUI53.Tools', (exports)->
       window.addEventListener 'mouseup', @stop, true
 
       @stopEvent(e)
-
-    disable: ->
-      @disabled = true
-
-    enable: ->
-      @disabled = false
       
     pan: (e)=>
       @_pan_with(e.screenX, e.screenY)

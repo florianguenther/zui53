@@ -4,7 +4,14 @@ namespace 'ZUI53.Tools', (exports)->
       @set = null
       @group = null
       @attached = false
+      @disabled = false
       # @exclusive = false
+    
+    disable: =>
+      @disabled = true
+
+    enable: =>
+      @disabled = false
     
     attach: ()=>
       @group.attach(@) if @group
