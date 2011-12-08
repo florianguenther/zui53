@@ -6,6 +6,7 @@ Bundler::GemHelper.install_tasks
 ENV['BUNDLE_GEMFILE'] ||= File.join(File.dirname(__FILE__), 'Gemfile')
 require 'bundler/setup' 
 require 'sprockets'
+require 'fileutils'
 
 task :default => [:core] do
   
@@ -13,7 +14,7 @@ end
 
 task :core do
   puts "Building zui53"
-  
+  FileUtils.mkdir 'build'
   assets = Sprockets::Environment.new() do |env|
     env.logger = Logger.new(STDOUT)
   end
