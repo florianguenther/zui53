@@ -14,7 +14,7 @@ end
 
 task :core do
   puts "Building zui53"
-  FileUtils.mkdir 'build'
+  FileUtils.mkdir 'build' unless File.exist? 'build'
   assets = Sprockets::Environment.new() do |env|
     env.logger = Logger.new(STDOUT)
   end

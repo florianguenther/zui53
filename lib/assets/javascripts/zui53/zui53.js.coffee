@@ -3,10 +3,14 @@
 #= require ./tools/zoom_tool
 #= require ./surfaces/svg_surface
 #= require ./surfaces/css_surface
+#= require ./surfaces/canvas_surface
 
 namespace 'ZUI53', (exports)->
   class exports.Viewport
     constructor: (vp)->
+      if typeof vp == 'string'
+        vp = document.getElementById(vp)
+        
       @min_scale = null
       @max_scale = null
       

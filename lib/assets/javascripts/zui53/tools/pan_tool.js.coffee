@@ -30,8 +30,8 @@ namespace 'ZUI53.Tools', (exports)->
   
       @_start_with(e.screenX, e.screenY)
   
-      window.addEventListener 'mousemove', @pan, true
-      window.addEventListener 'mouseup', @stop, true
+      $(@eventDispatcher).bind 'mousemove', @pan
+      $(@eventDispatcher).bind 'mouseup', @stop
 
       @stopEvent(e)
       
@@ -42,30 +42,38 @@ namespace 'ZUI53.Tools', (exports)->
       # console.log "stop panning"
       $('body').removeClass('panning')
 
-      window.removeEventListener 'mousemove', @pan, true
-      window.removeEventListener 'mouseup', @stop, true
+      $(@eventDispatcher).unbind 'mousemove', @pan
+      $(@eventDispatcher).unbind 'mouseup', @stop
 
-      window.removeEventListener 'touchmove', @pan, true
-      window.removeEventListener 'touchend', @stop, true
+      $(@eventDispatcher).unbind 'touchmove', @touch_move
+      $(@eventDispatcher).unbind 'touchend', @touch_stop
       
       @stopEvent(e)
       
     touch_start: (e)=>
+      # TODO: this will be fired 2 times - why?
+      # console.log 'ZUI touch start'
       if @disabled
         return
 
       # console.log "start panning (touch)"
       @_start_with(e.originalEvent.touches[0].clientX, e.originalEvent.touches[0].clientY)
-      @eventDispatcher.addEventListener 'touchmove', @touch_move, true
-      @eventDispatcher.addEventListener 'touchend', @touch_stop, true
-      e.originalEvent.preventDefault()
+      $(@eventDispatcher).bind 'touchmove', @touch_move
+      $(@eventDispatcher).bind 'touchend', @touch_stop
   
     touch_move: (e)=>
-      @_pan_with(e.touches[0].clientX, e.touches[0].clientY)
+      if e.originalEvent.touches.length > 1
+        @touch_stop()
+      else
+        x = e.originalEvent.touches[0].clientX
+        y = e.originalEvent.touches[0].clientY
+        @_pan_with(x, y)
+        e.originalEvent.preventDefault()
     
     touch_stop: (e)=>
-      @eventDispatcher.removeEventListener 'touchmove', @touch_move, true
-      @eventDispatcher.removeEventListener 'touchend', @touch_stop, true
+      # console.log 'ZUI touch stop'
+      $(@eventDispatcher).unbind 'touchmove', @touch_move
+      $(@eventDispatcher).unbind 'touchend', @touch_stop
   
     _pan_with: (x, y)=>
       # console.log "panning PAN Tool"
