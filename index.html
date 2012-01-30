@@ -3,31 +3,6 @@ layout: default
 title: florianguenther/zui53 @ GitHub
 ---
 
-
-  <script>
-    function initZUI(){
-      var zui = new ZUI53.Viewport( $('#zui_svg')[0] );
-      zui.addSurface( new ZUI53.Surfaces.SVG( $('#svg_root_group')[0] ) );
-
-      var pan_tool = new ZUI53.Tools.Pan(zui);
-      zui.toolset.add( pan_tool );
-      pan_tool.attach()
-      
-      zui = new ZUI53.Viewport( document.getElementById('zui_css') );
-      zui.addSurface( new ZUI53.Surfaces.CSS( document.getElementById('viewport_css') ) );
-      
-      pan_tool = new ZUI53.Tools.Pan(zui);
-      zui.toolset.add( pan_tool );
-      pan_tool.attach()
-
-    }
-    
-    jQuery(function(){
-      initZUI();
-    })
-  </script>
-
-
   <a href="http://github.com/florianguenther/zui53"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
   <div id="container">
@@ -50,25 +25,17 @@ title: florianguenther/zui53 @ GitHub
     Scroll Mousewheel to zoom. Click and drag left mouse button to pan.
     <h3>CSS / DOM</h3>
     <div class='demo'>
-      <div id='zui_css'>
-        <div id='viewport_css' >
-          <button style='position:absolute; left: 300px; top: 100px;'>This is a simple HTML Button</button>
-
-          <div style='position: absolute; left: 100px; top: 100px; border: 2px solid red; padding: 10px;'>Hello World</div>
-        </div>
-      </div>
+      <iframe style="width: 100%; height: 100%;" src="http://jsfiddle.net/florianguenther/jcT5m/1/embedded/result,js,html,css/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
     </div>
     
     <h3>SVG</h3>
     <div class='demo'>
-      <div id='zui_svg'>
-        <svg height=100% width=100%>
-          <g id='svg_root_group'>
-            <path stroke=#F53F0C stroke-width=10 fill=#F5C60C stroke-linejoin=round d='M 10,90 L 90,90 L 50,14 Z'/>
-            <line stroke=black stroke-width=10 stroke-linecap=round x1=50 x2=50 y1=45 y2=75 />
-          </g>
-        </svg>
-      </div>
+      <iframe style="width: 100%; height: 100%;" src="http://jsfiddle.net/florianguenther/RY2eg/1/embedded/result,js,html,css/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+    </div>
+    
+    <h3>Canvas</h3>
+    <div class='demo'>
+      <iframe style="width: 100%; height: 100%;" src="http://jsfiddle.net/ZVLfC/6/embedded/result,js,html,css/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
     </div>
     
     
