@@ -109,12 +109,12 @@ namespace 'ZUI53.Tools', (exports)->
       if @disabled
         return
         
-      delta = e.wheelDelta || (e.detail * -1)
+      delta = e.originalEvent.wheelDelta || (e.originalEvent.detail * -1)
       f = 0.05
       if delta < 0
         f *= -1
       
-      @vp.zoomBy(f, e.clientX, e.clientY)
+      @vp.zoomBy(f, e.originalEvent.clientX, e.originalEvent.clientY)
     
       @stopEvent(e)
   
