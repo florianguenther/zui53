@@ -31,6 +31,9 @@ namespace 'ZUI53.Tools', (exports)->
       if @disabled
         return
 
+      if e.shiftKey
+        return;
+
       if not @eventInSurface(e)
         return
 
