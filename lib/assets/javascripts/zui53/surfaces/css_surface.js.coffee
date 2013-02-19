@@ -1,6 +1,9 @@
 namespace 'ZUI53.Surfaces', (exports)->
   class exports.CSS
     constructor: (@node)->
+      if typeof @node == 'string'
+        @node = document.getElementById(@node)
+        
       $(@node).transform({origin:['0','0']})
       $(@node).css({
         # '-webkit-transform-origin': '0 0',

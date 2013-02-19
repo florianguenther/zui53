@@ -1,6 +1,9 @@
 namespace 'ZUI53.Surfaces', (exports)->
   class exports.SVG
     constructor: (@node)->
+      if typeof @node == 'string'
+        @node = document.getElementById(@node)
+        
       # console.log @node
       # $(@node).css({
       #   'position': 'absolute',
