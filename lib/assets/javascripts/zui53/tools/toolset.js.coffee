@@ -1,6 +1,9 @@
+#= require ../events
+
 namespace 'ZUI53.Tools', (exports)->
-  class exports.Base
+  class exports.Base extends ZUI53.Events
     constructor: ()->
+      super()
       @set = null
       @group = null
       @attached = false

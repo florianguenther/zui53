@@ -114,7 +114,7 @@ namespace 'ZUI53.Tools', (exports)->
       if delta < 0
         f *= -1
       
-      @vp.zoomBy(f, e.originalEvent.clientX, e.originalEvent.clientY)
+      @vp.scaleBy(f, e.originalEvent.clientX, e.originalEvent.clientY)
     
       @stopEvent(e)
   
@@ -131,7 +131,7 @@ namespace 'ZUI53.Tools', (exports)->
     gesture_move: (e)=>
       # console.log "Gesture Move"
       if @last_touch_p
-        @vp.zoomSet( @start_scale * e.scale, @last_touch_p.e(1), @last_touch_p.e(2))
+        @vp.setScale( @start_scale * e.scale, @last_touch_p.e(1), @last_touch_p.e(2))
     
     gesture_end: (e)=>
       @eventDispatcher.removeEventListener 'touchmove', @touch_move, @use_capture
@@ -142,7 +142,7 @@ namespace 'ZUI53.Tools', (exports)->
     _internal_gesture_start: ()=>
       @makeExclusive()
       @last_touch_p = null
-      @start_scale = @vp.scale
+      @start_scale = @vp.getScale()
     
     _internal_gesture_end: ()=>
       @makeUnexclusive()

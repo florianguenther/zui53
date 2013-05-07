@@ -17,7 +17,9 @@ namespace 'ZUI53.Surfaces', (exports)->
       null
     
     apply: (panX, panY, scale)=>
-      $(@node).transform({matrix: [scale,0.0,0.0,scale,panX,panY]});
+      m = [scale,0.0,0.0,scale,panX,panY]
+      $(@node).transform({matrix: m})
+      
       # matrix = "matrix(#{scale}, 0.0, 0.0, #{scale}, #{panX}, #{panY})"
       # single = "translate(#{pX}px, #{pY}px) scale(#{scale}, #{scale})"
 
