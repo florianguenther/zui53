@@ -1,5 +1,4 @@
 #= require ./helper
-#= require ./events
 #= require ./tools/pan_tool
 #= require ./tools/zoom_tool
 #= require ./surfaces/svg_surface
