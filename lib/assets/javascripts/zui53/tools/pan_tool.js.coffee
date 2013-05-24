@@ -21,8 +21,20 @@ namespace 'ZUI53.Tools', (exports)->
       $(@eventDispatcher).unbind 'mousedown', @start
       $(@eventDispatcher).unbind 'touchstart', @touch_start
     
+    eventInSurface: (e)->
+      for surface in @vp.surfaces
+        if e.target == surface.node
+          return true
+      return e.target == @eventDispatcher
+
     start: (e)=>
       if @disabled
+        return
+
+      if e.shiftKey
+        return;
+
+      if not @eventInSurface(e)
         return
 
       # console.log "start panning"
@@ -51,6 +63,10 @@ namespace 'ZUI53.Tools', (exports)->
       @stopEvent(e)
       
     touch_start: (e)=>
+
+      if not @eventInSurface(e)
+        return
+
       # TODO: this will be fired 2 times - why?
       # console.log 'ZUI touch start'
       if @disabled
